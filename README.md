@@ -33,7 +33,7 @@ Desarrollada como proyecto de titulación profesional bajo una metodología incr
 
 1. Clonar el repositorio:
    ```bash
-   git clone <URL_DEL_REPOSITORIO>
+   git clone https://github.com/ChaeMendoza/fundacion-regalando-sonrisas-project.git
    cd p_final
    ```
 
