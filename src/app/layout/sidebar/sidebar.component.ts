@@ -13,15 +13,19 @@ interface NavItem {
   imports: [RouterLink, RouterLinkActive],
   template: `
     <nav class="sidebar-nav">
-      <div class="sidebar-nav__brand">
-        <div class="sidebar-nav__logo-circle">
-          <span>FRS</span>
+      <a routerLink="/" class="sidebar-nav__brand" title="Volver al sitio público">
+        <div class="sidebar-nav__logo-wrap">
+          <img
+            src="images/logo-fundacion.jpg"
+            alt="Logo Fundación Regalando Sonrisas"
+            class="sidebar-nav__logo-img"
+          />
         </div>
         <div class="sidebar-nav__brand-info">
           <span class="sidebar-nav__title">Regalando Sonrisas</span>
           <span class="sidebar-nav__subtitle">Sistema de Gestión</span>
         </div>
-      </div>
+      </a>
 
       <ul class="sidebar-nav__list">
         @for (item of navItems; track item.path) {
@@ -64,17 +68,22 @@ interface NavItem {
         margin-bottom: 1.25rem;
       }
 
-      &__logo-circle {
-        width: 2.5rem;
-        height: 2.5rem;
-        border-radius: 0.5rem;
-        background: linear-gradient(135deg, #0284c7, #0f766e);
+      &__logo-wrap {
+        width: 3rem;
+        height: 2.25rem;
+        background: #ffffff;
+        border-radius: 0.375rem;
+        padding: 0.125rem 0.25rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 700;
-        font-size: 0.875rem;
-        color: #ffffff;
+        flex-shrink: 0;
+      }
+
+      &__logo-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
       }
 
       &__brand-info {
@@ -163,6 +172,11 @@ export class SidebarComponent {
       path: '/dashboard',
       label: 'Inicio / Dashboard',
       icon: '<svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>',
+    },
+    {
+      path: '/',
+      label: 'Portal Público Web',
+      icon: '<svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v.183A5.99 5.99 0 0110 16c-.466 0-.92-.053-1.354-.154a1.5 1.5 0 01-.646-.846L7.5 13.5A1.5 1.5 0 006 12H4.5a2.5 2.5 0 01-.168-3.973z" clip-rule="evenodd"/></svg>',
     },
     {
       path: '/beneficiaries',

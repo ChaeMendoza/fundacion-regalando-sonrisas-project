@@ -2,20 +2,25 @@ import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 
 export const routes: Routes = [
+  // Portal público institucional (Landing Page)
+  {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () =>
+      import('./features/landing/landing.component').then((m) => m.LandingComponent),
+    title: 'Fundación Regalando Sonrisas | Quito, Ecuador',
+  },
+
+  // Sistema de Gestión Integral (Módulos Internos dentro de MainLayout)
   {
     path: '',
     component: MainLayoutComponent,
     children: [
       {
-        path: '',
-        pathMatch: 'full',
-        redirectTo: 'dashboard',
-      },
-      {
         path: 'dashboard',
         loadComponent: () =>
           import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
-        title: 'Inicio | Fundación Regalando Sonrisas',
+        title: 'Inicio / Panel de Control | Fundación Regalando Sonrisas',
       },
       {
         path: 'beneficiaries',
@@ -63,8 +68,10 @@ export const routes: Routes = [
       },
     ],
   },
+
+  // Ruta comodín de redirección
   {
     path: '**',
-    redirectTo: 'dashboard',
+    redirectTo: '',
   },
 ];

@@ -1,10 +1,12 @@
 import { Component, inject, output } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/firebase/auth.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-header',
   standalone: true,
+  imports: [RouterLink],
   template: `
     <header class="app-header">
       <div class="app-header__left">
@@ -18,6 +20,14 @@ import { environment } from '../../../environments/environment';
             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
           </svg>
         </button>
+
+        <a routerLink="/" class="app-header__brand-link" title="Ir al Portal Público">
+          <img
+            src="images/logo-fundacion.jpg"
+            alt="Logo Fundación Regalando Sonrisas"
+            class="app-header__logo-img"
+          />
+        </a>
 
         <div class="app-header__location">
           <span class="app-header__org">Fundación Regalando Sonrisas</span>
@@ -84,6 +94,19 @@ import { environment } from '../../../environments/environment';
         &:hover {
           background-color: var(--surface-bg, #f8fafc);
         }
+      }
+
+      &__brand-link {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+      }
+
+      &__logo-img {
+        height: 32px;
+        width: auto;
+        object-fit: contain;
+        border-radius: 4px;
       }
 
       &__location {
