@@ -281,7 +281,7 @@ interface Pillar {
             &copy; {{ currentYear }} Fundación Regalando Sonrisas &bull; Quito, Ecuador. Todos los derechos reservados.
           </p>
           <p class="landing-footer__academic">
-            Proyecto de Titulación &bull; Arquitectura de Software y Desarrollo Full-Stack
+            Proyecto de Titulación &bull; <a href="https://github.com/ChaeMendoza" target="_blank">Chae Mendoza</a>
           </p>
         </div>
       </footer>
