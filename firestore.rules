@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Función auxiliar: verifica que el usuario esté autenticado
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Función auxiliar: obtiene el documento del usuario actual
+    function getUserData() {
+      return get(/databases/database/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Regla por defecto: Denegación estricta de todo acceso no explícito
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Colección: users (perfiles de usuarios del sistema)
+    match /users/{userId} {
+      // El usuario autenticado puede leer su propio perfil
+      // NOTA PENDIENTE DE VALIDACIÓN: Definición de permisos de Administrador para gestionar otros usuarios.
+      allow read: if isAuthenticated() && (request.auth.uid == userId || resource.data.role == 'admin');
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isAuthenticated() && request.auth.uid == userId;
+      allow delete: if false; // Desactivación lógica requerida en lugar de borrado físico
+    }
+
+    // Colección: beneficiaries (Beneficiarios y grupos familiares)
+    match /beneficiaries/{beneficiaryId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isAuthenticated() && request.resource.data.updatedBy == request.auth.uid;
+      allow delete: if false; // Prohibida la eliminación física para trazabilidad y auditoría
+    }
+
+    // Colección: donations (Donaciones y respaldo)
+    match /donations/{donationId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isAuthenticated() && request.resource.data.updatedBy == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // Colección: volunteers (Voluntarios)
+    match /volunteers/{volunteerId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isAuthenticated() && request.resource.data.updatedBy == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // Colección: activities (Actividades, eventos y entregas)
+    match /activities/{activityId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isAuthenticated() && request.resource.data.updatedBy == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // Colección: documents (Metadatos de documentos y evidencias)
+    match /documents/{documentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.uploadedBy == request.auth.uid;
+      allow update: if isAuthenticated() && request.resource.data.updatedBy == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // Colección: audit_logs (Trazabilidad y auditoría inmutable)
+    match /audit_logs/{logId} {
+      // Sólo lectura para usuarios autenticados autorizados
+      allow read: if isAuthenticated();
+      // Creación permitida para registrar evento, asociando obligatoriamente el uid del autor
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      // INMUTABILIDAD: Modificación y borrado estrictamente prohibidos
+      allow update, delete: if false;
+    }
+  }
+}

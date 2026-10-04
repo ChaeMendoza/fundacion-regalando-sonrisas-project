@@ -1,0 +1,42 @@
+{
+  "name": "fundacion-regalando-sonrisas",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "lint": "ng lint",
+    "emulators:start": "firebase emulators:start",
+    "deploy": "firebase deploy",
+    "deploy:hosting": "firebase deploy --only hosting"
+  },
+  "private": true,
+  "packageManager": "npm@11.19.1",
+  "dependencies": {
+    "@angular/common": "^22.2.0",
+    "@angular/compiler": "^22.2.0",
+    "@angular/core": "^22.2.0",
+    "@angular/forms": "^22.2.0",
+    "@angular/platform-browser": "^22.2.0",
+    "@angular/router": "^22.2.0",
+    "firebase": "^12.19.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.2.1",
+    "@angular/cli": "^22.2.1",
+    "@angular/compiler-cli": "^22.2.0",
+    "@eslint/js": "^10.0.1",
+    "angular-eslint": "22.5.0",
+    "eslint": "^10.9.1",
+    "firebase-tools": "^15.32.1",
+    "jsdom": "^30.0.0",
+    "prettier": "^3.8.1",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "8.69.0",
+    "vitest": "^5.0.0"
+  }
+}

@@ -1,0 +1,27 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isValidSize() {
+      // Límite de 10 MB por archivo para prevenir saturación de almacenamiento
+      return request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // Regla por defecto: Denegación de acceso público
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    // Archivos organizados por módulos
+    match /{moduleName}/{recordId}/{fileName} {
+      // Sólo usuarios autenticados pueden consultar documentos institucionales
+      allow read: if isAuthenticated();
+      // Escritura sujeta a tamaño y usuario autenticado
+      allow write: if isAuthenticated() && isValidSize();
+    }
+  }
+}
