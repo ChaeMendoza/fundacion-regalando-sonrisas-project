@@ -6,7 +6,7 @@
 
 Aplicación web para la Fundación Regalando Sonrisas, organización sin fines de lucro ubicada en Quito, Ecuador. El repositorio contiene un **prototipo funcional** y una base bajo Clean Architecture.
 
-Las páginas y módulos de la interfaz muestran el flujo de referencia del sistema; no implican que todas las funciones de gestión, persistencia o seguridad estén implementadas. La autenticación conserva un usuario demo y los roles continúan pendientes de validación institucional. No se deben asumir como funcionalidades terminadas las propuestas descritas en la documentación.
+Las páginas y módulos de gestión muestran el flujo de referencia del sistema; no implican que todas las funciones de gestión, persistencia o seguridad estén implementadas. El acceso ahora utiliza Firebase Authentication: el prototipo ya no inicia con una sesión demo y no asigna roles automáticamente. No se deben asumir como funcionalidades terminadas las propuestas descritas en la documentación.
 
 ## Tecnologías
 
@@ -34,6 +34,8 @@ npm start
 ```
 
 La aplicación de desarrollo queda disponible en `http://localhost:4200`.
+
+La portada institucional permanece en `/`. El acceso al sistema está disponible en `/login` y el formulario de solicitud de cuenta en `/register`. El registro usa Firebase Authentication con correo y contraseña; las cuentas nuevas quedan pendientes y no reciben rol ni acceso a los módulos internos. El mecanismo institucional para aprobar cuentas y asignar roles todavía no está definido, por lo que este prototipo no habilita automáticamente el acceso tras registrarse o iniciar sesión.
 
 ## Configuración de Firebase
 
@@ -82,13 +84,13 @@ src/
 │   │   └── repositories/         # Contratos AuthRepository y AuditLogRepository
 │   ├── application/
 │   │   └── use-cases/
-│   │       ├── auth/             # Login, logout y observación de sesión
+│   │       ├── auth/             # Login, registro, logout y observación de sesión
 │   │       └── audit/            # Registro y consulta de auditoría
 │   ├── infrastructure/
 │   │   ├── firebase/             # Adaptadores técnicos Firebase
 │   │   └── repositories/         # Implementaciones Firebase de los contratos
 │   ├── presentation/
-│   │   ├── pages/                # Landing y páginas del prototipo
+│   │   ├── pages/                # Landing, autenticación y páginas del prototipo
 │   │   ├── layout/               # Header, sidebar, footer y layout principal
 │   │   ├── shared/components/    # Componentes de interfaz reutilizables
 │   │   ├── guards/               # Guards de autenticación y rol
@@ -108,9 +110,9 @@ El detalle de las capas y los contratos está en [`docs/architecture.md`](docs/a
 ## Alcance y estado
 
 - Las páginas de dashboard, beneficiarios, donaciones, voluntarios, actividades, documentos, reportes y administración son parte de la interfaz del prototipo. Su presencia no implica que exista persistencia completa o flujos CRUD integrados.
-- La capa de autenticación mantiene la sesión demo existente para facilitar la navegación del prototipo. La asignación real de roles no está resuelta.
+- El login y el registro usan Firebase Authentication y crean/consultan perfiles en `users`. Las cuentas nuevas quedan pendientes, sin rol; el sistema no tiene todavía un flujo institucional para aprobarlas o asignar roles.
 - Existen adaptadores para Firebase y casos de uso de autenticación y auditoría; no todos los servicios están conectados a páginas o flujos de usuario.
-- Las rutas actuales no aplican los guards de autenticación y rol.
+- Las rutas internas requieren una sesión con perfil `active` y rol asignado. Firestore y Storage aplican el mismo requisito; las cuentas sin aprobación se dirigen a la página de acceso pendiente.
 - Cloud Functions contiene `healthCheck` y una callable `logAuditEvent`; su presencia no significa que la aplicación cliente delegue actualmente toda la auditoría al backend.
 - La estructura Firestore, reglas y funcionalidades de negocio pendientes requieren validación formal antes de considerarse requisitos implementados.
 - Las definiciones de roles, campos obligatorios y reglas institucionales continúan sujetas a validación.

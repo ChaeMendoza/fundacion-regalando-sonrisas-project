@@ -34,12 +34,12 @@ Las dependencias apuntan siempre hacia adentro: `presentation → application �
 src/app/
 ├── domain/                      # Sin dependencias de frameworks
 │   ├── entities/                # user.entity (AppUser, roles), audit-log.entity
-│   └── repositories/            # Contratos: AuthRepository, AuditLogRepository
+│   └── repositories/            # Contratos: AuthRepository, AuditLogRepository, UserProfileRepository
 ├── application/
-│   └── use-cases/               # TypeScript puro: auth/ (login, logout, observe-session), audit/ (log-audit-event, get-recent-audit-logs)
+│   └── use-cases/               # TypeScript puro: auth/ (login, register, logout, observe-session), audit/ (log-audit-event, get-recent-audit-logs)
 ├── infrastructure/
 │   ├── firebase/                # Clientes técnicos: firebase-app, firestore, storage, functions
-│   └── repositories/            # Implementaciones: FirebaseAuthRepository, FirestoreAuditLogRepository
+│   └── repositories/            # FirebaseAuthRepository, FirestoreAuditLogRepository, FirestoreUserProfileRepository
 ├── presentation/
 │   ├── pages/                   # dashboard, beneficiaries, donations, volunteers, activities, documents, reports, admin, landing
 │   ├── layout/                  # header, sidebar, footer, main-layout
@@ -50,6 +50,8 @@ src/app/
 ├── app.config.ts · app.routes.ts · app.providers.ts   # Bootstrap y composición
 src/environments/                # Configuración por entorno (consumida solo por la raíz de composición e infraestructura)
 ```
+
+Las rutas públicas `/login` y `/register` usan casos de uso de autenticación; las rutas internas requieren una sesión con perfil `active` y rol asignado. Los registros nuevos crean un documento `users/{uid}` con estado `pending` y rol nulo. Firestore y Storage también verifican estado y rol, por lo que la protección no depende solo de la navegación del cliente. El flujo institucional para aprobar cuentas y asignar roles aún debe definirse.
 
 ---
 
