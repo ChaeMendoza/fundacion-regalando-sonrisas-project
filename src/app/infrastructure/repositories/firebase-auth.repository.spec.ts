@@ -1,19 +1,28 @@
 import { TestBed } from '@angular/core/testing';
 import { AppUser } from '../../domain/entities/user.entity';
+import { UserProfileRepository } from '../../domain/repositories/user-profile.repository';
 import { FirebaseAuthRepository } from './firebase-auth.repository';
 
 describe('FirebaseAuthRepository', () => {
   let repository: FirebaseAuthRepository;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: UserProfileRepository,
+          useValue: {
+            findById: vi.fn().mockResolvedValue(null),
+            createPendingProfile: vi.fn().mockResolvedValue(undefined),
+          },
+        },
+      ],
+    });
     repository = TestBed.inject(FirebaseAuthRepository);
   });
 
-  it('should initialize with active development user', () => {
-    const user = repository.getCurrentUser();
-    expect(user?.email).toContain('admin.demo@regalandosonrisas.ec');
-    expect(user?.role).toBe('admin');
+  it('does not grant a demo session before Firebase resolves the user', () => {
+    expect(repository.getCurrentUser()).toBeNull();
   });
 
   it('should notify listeners when logging out', async () => {
