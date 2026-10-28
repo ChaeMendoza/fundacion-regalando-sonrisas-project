@@ -19,7 +19,7 @@ export interface AppUser {
   uid: string;
   email: string;
   displayName: string;
-  role: UserRole;
+  role: UserRole | null;
   status: UserStatus;
   photoUrl?: string;
   phoneNumber?: string;
