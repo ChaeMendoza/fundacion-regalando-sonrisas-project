@@ -2,8 +2,11 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     
-    function isAuthenticated() {
-      return request.auth != null;
+    function hasActiveProfile() {
+      return request.auth != null
+        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.status == 'active'
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['admin', 'volunteer', 'authorized_staff'];
     }
     
     function isValidSize() {
@@ -18,10 +21,8 @@ service firebase.storage {
 
     // Archivos organizados por módulos
     match /{moduleName}/{recordId}/{fileName} {
-      // Sólo usuarios autenticados pueden consultar documentos institucionales
-      allow read: if isAuthenticated();
-      // Escritura sujeta a tamaño y usuario autenticado
-      allow write: if isAuthenticated() && isValidSize();
+      allow read: if hasActiveProfile();
+      allow write: if hasActiveProfile() && isValidSize();
     }
   }
 }
