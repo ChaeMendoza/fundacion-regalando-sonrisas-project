@@ -36,7 +36,7 @@ import { SessionStore } from '../../state/session.store';
         <button type="button" class="pending-button" [disabled]="loading()" (click)="signOut()">
           {{ loading() ? 'Cerrando sesión…' : 'Cerrar sesión' }}
         </button>
-        <a routerLink="/" class="pending-link">Volver al portal institucional</a>
+        <a routerLink="/" class="pending-link">← Volver al portal institucional</a>
       </section>
     </main>
   `,

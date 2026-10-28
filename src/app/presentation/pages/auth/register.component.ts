@@ -93,7 +93,7 @@ function containsNonWhitespace(control: AbstractControl): ValidationErrors | nul
           ¿Ya tienes cuenta?
           <a routerLink="/login">Inicia sesión</a>
         </p>
-        <a routerLink="/" class="auth-back">Volver al portal institucional</a>
+        <a routerLink="/" class="auth-back">← Volver al portal institucional</a>
       </section>
     </main>
   `,

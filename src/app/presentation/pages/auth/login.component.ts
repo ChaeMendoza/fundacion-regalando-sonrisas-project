@@ -61,7 +61,7 @@ import { getAuthErrorMessage } from './auth-error-message';
           ¿Aún no tienes cuenta?
           <a routerLink="/register">Solicitar registro</a>
         </p>
-        <a routerLink="/" class="auth-back">Volver al portal institucional</a>
+        <a routerLink="/" class="auth-back">← Volver al portal institucional</a>
       </section>
     </main>
   `,
