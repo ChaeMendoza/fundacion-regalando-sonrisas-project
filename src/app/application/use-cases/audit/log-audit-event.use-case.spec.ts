@@ -19,8 +19,14 @@ class FakeAuth extends AuthRepository {
   getCurrentUser() {
     return null;
   }
+  waitForInitialState() {
+    return Promise.resolve(null);
+  }
   observeAuthState() {
     return () => undefined;
+  }
+  register(): Promise<void> {
+    return Promise.resolve();
   }
   login(): Promise<void> {
     return Promise.resolve();
