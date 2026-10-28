@@ -12,7 +12,7 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 import { FirebaseAppService } from './firebase-app.service';
-import { AuthService } from './auth.service';
+import { AuthRepository } from '../../domain/repositories/auth.repository';
 
 export interface BaseEntity {
   id?: string;
@@ -28,7 +28,7 @@ export interface BaseEntity {
 })
 export class FirestoreService {
   private readonly firebaseAppService = inject(FirebaseAppService);
-  private readonly authService = inject(AuthService);
+  private readonly auth = inject(AuthRepository);
 
   private get db() {
     return this.firebaseAppService.firestore;
@@ -60,15 +60,15 @@ export class FirestoreService {
         ({
           id: d.id,
           ...d.data(),
-        }) as T
+        }) as T,
     );
   }
 
   async createDocument<T extends BaseEntity>(
     collectionName: string,
-    data: Omit<T, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy' | 'isActive'>
+    data: Omit<T, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy' | 'isActive'>,
   ): Promise<string> {
-    const currentUserId = this.authService.currentUser()?.uid ?? 'system';
+    const currentUserId = this.auth.getCurrentUser()?.uid ?? 'system';
     const now = new Date().toISOString();
 
     const payload = {
@@ -88,9 +88,9 @@ export class FirestoreService {
   async updateDocument<T extends BaseEntity>(
     collectionName: string,
     id: string,
-    data: Partial<T>
+    data: Partial<T>,
   ): Promise<void> {
-    const currentUserId = this.authService.currentUser()?.uid ?? 'system';
+    const currentUserId = this.auth.getCurrentUser()?.uid ?? 'system';
     const docRef = this.getDocRef(collectionName, id);
 
     const payload = {

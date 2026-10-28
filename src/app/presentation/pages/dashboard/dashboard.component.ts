@@ -35,8 +35,8 @@ interface ModuleCard {
     <app-alert type="info" title="Estado de la Base Técnica">
       El sistema se encuentra en fase inicial de bootstrap. Los módulos funcionales están
       estructurados de acuerdo con los requerimientos base. Las funcionalidades de expansión
-      (proyectos/programas, aliados y el proyecto <em>'Emprendiendo e Innovando Desde Casa'</em>)
-      se encuentran documentadas y reservadas para validación previa a su incremento.
+      (proyectos/programas, aliados y el proyecto <em>'Emprendiendo e Innovando Desde Casa'</em>) se
+      encuentran documentadas y reservadas para validación previa a su incremento.
     </app-alert>
 
     <!-- Indicadores Preliminares (Métricas Conceptuales) -->
@@ -71,7 +71,8 @@ interface ModuleCard {
     <section class="dashboard-modules">
       <h2 class="dashboard-modules__title">Módulos del Sistema de Gestión</h2>
       <p class="dashboard-modules__desc">
-        Centralización de información para eliminar dispersión documental, duplicados y falta de trazabilidad.
+        Centralización de información para eliminar dispersión documental, duplicados y falta de
+        trazabilidad.
       </p>
 
       <div class="grid-cards">
@@ -104,139 +105,155 @@ interface ModuleCard {
     <section class="pending-section card">
       <h3 class="pending-section__title">Gobernanza del Proyecto y Reglas de Desarrollo</h3>
       <p class="pending-section__desc">
-        Conforme al marco del proyecto de titulación, este software se rige por las siguientes pautas:
+        Conforme al marco del proyecto de titulación, este software se rige por las siguientes
+        pautas:
       </p>
       <div class="pending-grid">
         <div class="pending-item">
           <strong>Cero Invención de Datos:</strong>
-          <span>No se inyectan registros ficticios haciéndolos pasar por datos reales de la Fundación.</span>
+          <span
+            >No se inyectan registros ficticios haciéndolos pasar por datos reales de la
+            Fundación.</span
+          >
         </div>
         <div class="pending-item">
           <strong>Límites del Alcance:</strong>
-          <span>No se implementan módulos contables, facturación electrónica, nómina ni pasarelas de pago.</span>
+          <span
+            >No se implementan módulos contables, facturación electrónica, nómina ni pasarelas de
+            pago.</span
+          >
         </div>
         <div class="pending-item">
           <strong>Seguridad y Roles:</strong>
-          <span>La distinción entre roles y permisos granulares de 'Personal Autorizado' se mantiene en validación formal.</span>
+          <span
+            >La distinción entre roles y permisos granulares de 'Personal Autorizado' se mantiene en
+            validación formal.</span
+          >
         </div>
         <div class="pending-item">
           <strong>Trazabilidad Obligatoria:</strong>
-          <span>Toda modificación requiere identificación del usuario autenticado y auditoría inmutable.</span>
+          <span
+            >Toda modificación requiere identificación del usuario autenticado y auditoría
+            inmutable.</span
+          >
         </div>
       </div>
     </section>
   `,
-  styles: [`
-    .dashboard-modules {
-      margin-bottom: 2rem;
+  styles: [
+    `
+      .dashboard-modules {
+        margin-bottom: 2rem;
 
-      &__title {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin: 0 0 0.25rem 0;
+        &__title {
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: var(--text-primary);
+          margin: 0 0 0.25rem 0;
+        }
+
+        &__desc {
+          font-size: 0.875rem;
+          color: var(--text-secondary);
+          margin: 0 0 1.25rem 0;
+        }
       }
 
-      &__desc {
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-        margin: 0 0 1.25rem 0;
-      }
-    }
-
-    .module-card {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-
-      &__header {
+      .module-card {
         display: flex;
+        flex-direction: column;
         justify-content: space-between;
-        align-items: flex-start;
-        gap: 0.5rem;
-        margin-bottom: 0.75rem;
+
+        &__header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 0.5rem;
+          margin-bottom: 0.75rem;
+        }
+
+        &__title {
+          font-size: 1.125rem;
+          font-weight: 600;
+          color: var(--text-primary);
+          margin: 0;
+        }
+
+        &__description {
+          font-size: 0.875rem;
+          color: var(--text-secondary);
+          margin: 0 0 1rem 0;
+          line-height: 1.45;
+        }
+
+        &__items {
+          margin: 0 0 1.5rem 0;
+          padding-left: 1.25rem;
+          font-size: 0.8125rem;
+          color: var(--text-secondary);
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        &__footer {
+          padding-top: 1rem;
+          border-top: 1px solid var(--border-color);
+        }
       }
 
-      &__title {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin: 0;
+      .pending-section {
+        background: #fafaf9;
+        border-left: 4px solid var(--secondary);
+
+        &__title {
+          font-size: 1.125rem;
+          font-weight: 700;
+          margin: 0 0 0.5rem 0;
+          color: var(--text-primary);
+        }
+
+        &__desc {
+          font-size: 0.875rem;
+          color: var(--text-secondary);
+          margin: 0 0 1.25rem 0;
+        }
       }
 
-      &__description {
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-        margin: 0 0 1rem 0;
-        line-height: 1.45;
+      .pending-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+
+        @media (min-width: 640px) {
+          grid-template-columns: repeat(2, 1fr);
+        }
       }
 
-      &__items {
-        margin: 0 0 1.5rem 0;
-        padding-left: 1.25rem;
-        font-size: 0.8125rem;
-        color: var(--text-secondary);
+      .pending-item {
         display: flex;
         flex-direction: column;
         gap: 0.25rem;
+        font-size: 0.8125rem;
+
+        strong {
+          color: var(--text-primary);
+        }
+
+        span {
+          color: var(--text-secondary);
+          line-height: 1.4;
+        }
       }
-
-      &__footer {
-        padding-top: 1rem;
-        border-top: 1px solid var(--border-color);
-      }
-    }
-
-    .pending-section {
-      background: #fafaf9;
-      border-left: 4px solid var(--secondary);
-
-      &__title {
-        font-size: 1.125rem;
-        font-weight: 700;
-        margin: 0 0 0.5rem 0;
-        color: var(--text-primary);
-      }
-
-      &__desc {
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-        margin: 0 0 1.25rem 0;
-      }
-    }
-
-    .pending-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1rem;
-
-      @media (min-width: 640px) {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    .pending-item {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-      font-size: 0.8125rem;
-
-      strong {
-        color: var(--text-primary);
-      }
-
-      span {
-        color: var(--text-secondary);
-        line-height: 1.4;
-      }
-    }
-  `],
+    `,
+  ],
 })
 export class DashboardComponent {
   readonly modules: ModuleCard[] = [
     {
       title: 'Beneficiarios',
-      description: 'Gestión centralizada de personas y grupos familiares asistidos por la Fundación.',
+      description:
+        'Gestión centralizada de personas y grupos familiares asistidos por la Fundación.',
       route: '/beneficiaries',
       scopeItems: [
         'Registro y datos de contacto',

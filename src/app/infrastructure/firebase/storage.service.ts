@@ -1,13 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import {
-  deleteObject,
-  getDownloadURL,
-  ref,
-  uploadBytes,
-  UploadMetadata,
-} from 'firebase/storage';
+import { deleteObject, getDownloadURL, ref, uploadBytes, UploadMetadata } from 'firebase/storage';
 import { FirebaseAppService } from './firebase-app.service';
-import { AuthService } from './auth.service';
+import { AuthRepository } from '../../domain/repositories/auth.repository';
 
 export interface StorageUploadResult {
   path: string;
@@ -21,7 +15,7 @@ export interface StorageUploadResult {
 })
 export class StorageService {
   private readonly firebaseAppService = inject(FirebaseAppService);
-  private readonly authService = inject(AuthService);
+  private readonly auth = inject(AuthRepository);
 
   private get storage() {
     return this.firebaseAppService.storage;
@@ -31,12 +25,8 @@ export class StorageService {
    * Sube un archivo a Cloud Storage organizado por módulo y registro asociado.
    * Estructura: /{moduleName}/{recordId}/{fileName}
    */
-  async uploadFile(
-    moduleName: string,
-    recordId: string,
-    file: File
-  ): Promise<StorageUploadResult> {
-    const currentUserId = this.authService.currentUser()?.uid ?? 'anonymous';
+  async uploadFile(moduleName: string, recordId: string, file: File): Promise<StorageUploadResult> {
+    const currentUserId = this.auth.getCurrentUser()?.uid ?? 'anonymous';
     const filePath = `${moduleName}/${recordId}/${Date.now()}_${file.name}`;
     const storageRef = ref(this.storage, filePath);
 

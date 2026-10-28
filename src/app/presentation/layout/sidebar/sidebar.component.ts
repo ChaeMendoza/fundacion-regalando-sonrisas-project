@@ -49,120 +49,124 @@ interface NavItem {
       </div>
     </nav>
   `,
-  styles: [`
-    .sidebar-nav {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      background: #0f172a; /* Slate 900 */
-      color: #f8fafc;
-      padding: 1.25rem 1rem;
-      user-select: none;
-
-      &__brand {
+  styles: [
+    `
+      .sidebar-nav {
         display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding-bottom: 1.5rem;
-        border-bottom: 1px solid #1e293b;
-        margin-bottom: 1.25rem;
-      }
-
-      &__logo-wrap {
-        width: 3rem;
-        height: 2.25rem;
-        background: #ffffff;
-        border-radius: 0.375rem;
-        padding: 0.125rem 0.25rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-
-      &__logo-img {
-        width: 100%;
+        flex-direction: column;
         height: 100%;
-        object-fit: contain;
-      }
+        background: #0f172a; /* Slate 900 */
+        color: #f8fafc;
+        padding: 1.25rem 1rem;
+        user-select: none;
 
-      &__brand-info {
-        display: flex;
-        flex-direction: column;
-      }
-
-      &__title {
-        font-weight: 700;
-        font-size: 0.9375rem;
-        line-height: 1.2;
-      }
-
-      &__subtitle {
-        font-size: 0.75rem;
-        color: #94a3b8;
-      }
-
-      &__list {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-        flex: 1;
-        overflow-y: auto;
-      }
-
-      &__link {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.625rem 0.875rem;
-        border-radius: 0.5rem;
-        color: #cbd5e1;
-        font-size: 0.875rem;
-        font-weight: 500;
-        text-decoration: none;
-        transition: background-color 0.15s ease, color 0.15s ease;
-
-        &:hover {
-          background-color: #1e293b;
-          color: #ffffff;
+        &__brand {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding-bottom: 1.5rem;
+          border-bottom: 1px solid #1e293b;
+          margin-bottom: 1.25rem;
         }
 
-        &--active {
-          background-color: #0284c7;
-          color: #ffffff !important;
-          font-weight: 600;
+        &__logo-wrap {
+          width: 3rem;
+          height: 2.25rem;
+          background: #ffffff;
+          border-radius: 0.375rem;
+          padding: 0.125rem 0.25rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        &__logo-img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+        }
+
+        &__brand-info {
+          display: flex;
+          flex-direction: column;
+        }
+
+        &__title {
+          font-weight: 700;
+          font-size: 0.9375rem;
+          line-height: 1.2;
+        }
+
+        &__subtitle {
+          font-size: 0.75rem;
+          color: #94a3b8;
+        }
+
+        &__list {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+          flex: 1;
+          overflow-y: auto;
+        }
+
+        &__link {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.625rem 0.875rem;
+          border-radius: 0.5rem;
+          color: #cbd5e1;
+          font-size: 0.875rem;
+          font-weight: 500;
+          text-decoration: none;
+          transition:
+            background-color 0.15s ease,
+            color 0.15s ease;
+
+          &:hover {
+            background-color: #1e293b;
+            color: #ffffff;
+          }
+
+          &--active {
+            background-color: #0284c7;
+            color: #ffffff !important;
+            font-weight: 600;
+          }
+        }
+
+        &__icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 1.25rem;
+          height: 1.25rem;
+        }
+
+        &__footer {
+          padding-top: 1rem;
+          border-top: 1px solid #1e293b;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.75rem;
+          color: #64748b;
+        }
+
+        &__status-dot {
+          width: 0.5rem;
+          height: 0.5rem;
+          border-radius: 50%;
+          background-color: #22c55e;
         }
       }
-
-      &__icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 1.25rem;
-        height: 1.25rem;
-      }
-
-      &__footer {
-        padding-top: 1rem;
-        border-top: 1px solid #1e293b;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.75rem;
-        color: #64748b;
-      }
-
-      &__status-dot {
-        width: 0.5rem;
-        height: 0.5rem;
-        border-radius: 50%;
-        background-color: #22c55e;
-      }
-    }
-  `],
+    `,
+  ],
 })
 export class SidebarComponent {
   readonly linkClicked = output<void>();

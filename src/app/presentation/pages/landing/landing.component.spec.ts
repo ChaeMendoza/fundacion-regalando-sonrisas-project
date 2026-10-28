@@ -17,9 +17,7 @@ describe('LandingComponent', () => {
 
   it('should render the landing title and organization name', () => {
     const element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelector('.hero__title')?.textContent).toContain(
-      'Sembrando esperanza'
-    );
+    expect(element.querySelector('.hero__title')?.textContent).toContain('Sembrando esperanza');
     expect(element.textContent).toContain('Fundación Regalando Sonrisas');
   });
 

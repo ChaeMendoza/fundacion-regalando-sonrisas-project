@@ -26,44 +26,29 @@ El **Sistema de Gestión Integral** es una solución web orientada a centralizar
 
 ---
 
-## 3. Modelo Arquitectónico en Capas
+## 3. Modelo Arquitectónico (Clean Architecture)
 
-El diseño sigue una arquitectura modular en tres capas principales:
+Las dependencias apuntan siempre hacia adentro: `presentation → application → domain` e `infrastructure → application/domain`. `app.providers.ts` es la raíz de composición que enlaza contratos con implementaciones.
 
 ```
-src/
-├── app/
-│   ├── core/                    # CAPA DE INFRAESTRUCTURA Y SERVICIOS TRANSVERSALES (Singleton)
-│   │   ├── guards/              # authGuard, roleGuard
-│   │   ├── models/              # user.model.ts, audit.model.ts
-│   │   └── services/
-│   │       ├── firebase/        # firebase-app.service, auth.service, firestore.service, storage.service, functions.service
-│   │       └── audit.service.ts # Registro inmutable de eventos de auditoría
-│   │
-│   ├── shared/                  # CAPA REUTILIZABLE
-│   │   └── components/          # page-header, stat-card, status-badge, empty-state, alert
-│   │
-│   ├── layout/                  # CAPA ESTRUCTURAL DE INTERFAZ RESPONSIVE
-│   │   ├── header/              # Barra superior con datos de usuario y selector de entorno
-│   │   ├── sidebar/             # Navegación principal adaptativa (drawer móvil / fijo desktop)
-│   │   ├── footer/              # Pie de página institucional
-│   │   └── main-layout/         # Contenedor principal con RouterOutlet
-│   │
-│   └── features/                # CAPA DE DOMINIO Y MÓDULOS DE NEGOCIO (Lazy Loaded)
-│       ├── dashboard/           # Panel de control, indicadores preliminares y visión global
-│       ├── beneficiaries/       # Ficha socioeconómica, composición familiar y seguimiento
-│       ├── donations/           # Registro de donaciones, donantes y actas de entrega
-│       ├── volunteers/          # Padrón de voluntarios, habilidades y disponibilidad
-│       ├── activities/          # Eventos sociales, educativos, comunitarios y entregas
-│       ├── documents/           # Repositorio documental clasificado por entidad
-│       ├── reports/             # Generación de reportes institucionales (PDF, Excel, CSV)
-│       └── admin/               # Gestión de usuarios, perfiles y bitácora de auditoría
-│
-└── environments/                # CONFIGURACIÓN POR ENTORNOS
-    ├── environment.model.ts     # Contrato TypeScript de variables requeridas
-    ├── environment.ts           # Configuración de desarrollo local / emuladores
-    ├── environment.production.ts# Configuración de producción para CI/CD
-    └── environment.example.ts   # Plantilla pública sin secretos
+src/app/
+├── domain/                      # Sin dependencias de frameworks
+│   ├── entities/                # user.entity (AppUser, roles), audit-log.entity
+│   └── repositories/            # Contratos: AuthRepository, AuditLogRepository
+├── application/
+│   └── use-cases/               # TypeScript puro: auth/ (login, logout, observe-session), audit/ (log-audit-event, get-recent-audit-logs)
+├── infrastructure/
+│   ├── firebase/                # Clientes técnicos: firebase-app, firestore, storage, functions
+│   └── repositories/            # Implementaciones: FirebaseAuthRepository, FirestoreAuditLogRepository
+├── presentation/
+│   ├── pages/                   # dashboard, beneficiaries, donations, volunteers, activities, documents, reports, admin, landing
+│   ├── layout/                  # header, sidebar, footer, main-layout
+│   ├── shared/components/       # page-header, stat-card, status-badge, empty-state, alert
+│   ├── guards/                  # authGuard, roleGuard
+│   ├── state/                   # SessionStore (signals sobre casos de uso)
+│   └── config/                  # Tokens de configuración de UI (IS_PRODUCTION)
+├── app.config.ts · app.routes.ts · app.providers.ts   # Bootstrap y composición
+src/environments/                # Configuración por entorno (consumida solo por la raíz de composición e infraestructura)
 ```
 
 ---

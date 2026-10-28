@@ -14,14 +14,20 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
       badgeText="Alcance Base"
       badgeType="info"
     >
-      <button type="button" class="btn btn--primary" disabled title="Módulo en fase de inicialización">
+      <button
+        type="button"
+        class="btn btn--primary"
+        disabled
+        title="Módulo en fase de inicialización"
+      >
         + Registrar Voluntario
       </button>
     </app-page-header>
 
     <app-alert type="warning" title="Campos Sensibles y Disponibilidad">
-      La lista definitiva de campos de contacto de emergencia, habilidades específicas y disponibilidad horaria
-      debe ser convalidada con la coordinación de voluntariado de la Fundación Regalando Sonrisas.
+      La lista definitiva de campos de contacto de emergencia, habilidades específicas y
+      disponibilidad horaria debe ser convalidada con la coordinación de voluntariado de la
+      Fundación Regalando Sonrisas.
     </app-alert>
 
     <!-- Filtros de Voluntarios -->
@@ -58,11 +64,16 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
       <div class="scope-guide__grid">
         <div class="scope-guide__card">
           <h4>Datos Personales y Contacto</h4>
-          <p>Nombres, identificación, dirección de domicilio en Quito, teléfono y correo electrónico.</p>
+          <p>
+            Nombres, identificación, dirección de domicilio en Quito, teléfono y correo electrónico.
+          </p>
         </div>
         <div class="scope-guide__card">
           <h4>Disponibilidad y Áreas</h4>
-          <p>Días y horarios disponibles, áreas de apoyo (social, logística, educativa o administrativa).</p>
+          <p>
+            Días y horarios disponibles, áreas de apoyo (social, logística, educativa o
+            administrativa).
+          </p>
         </div>
         <div class="scope-guide__card">
           <h4>Habilidades y Emergencia</h4>
@@ -70,92 +81,98 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
         </div>
         <div class="scope-guide__card">
           <h4>Historial de Participación</h4>
-          <p>Registro automático de asistencia y apoyo brindado en cada actividad o evento institucional.</p>
+          <p>
+            Registro automático de asistencia y apoyo brindado en cada actividad o evento
+            institucional.
+          </p>
         </div>
       </div>
     </section>
   `,
-  styles: [`
-    .module-filters {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-
-      @media (min-width: 640px) {
-        flex-direction: row;
-        align-items: flex-end;
-      }
-    }
-
-    .filter-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.375rem;
-      flex: 1;
-    }
-
-    .filter-label {
-      font-size: 0.8125rem;
-      font-weight: 600;
-      color: var(--text-secondary);
-    }
-
-    .filter-input, .filter-select {
-      padding: 0.5rem 0.75rem;
-      border: 1px solid var(--border-color);
-      border-radius: 0.375rem;
-      font-size: 0.875rem;
-      background: var(--surface-bg);
-      color: var(--text-muted);
-      cursor: not-allowed;
-    }
-
-    .scope-guide {
-      margin-top: 2rem;
-
-      &__title {
-        font-size: 1.125rem;
-        font-weight: 700;
-        margin: 0 0 1rem 0;
-        color: var(--text-primary);
-      }
-
-      &__grid {
-        display: grid;
-        grid-template-columns: 1fr;
+  styles: [
+    `
+      .module-filters {
+        display: flex;
+        flex-direction: column;
         gap: 1rem;
+        margin-bottom: 1.5rem;
 
         @media (min-width: 640px) {
-          grid-template-columns: repeat(2, 1fr);
-        }
-
-        @media (min-width: 1024px) {
-          grid-template-columns: repeat(4, 1fr);
+          flex-direction: row;
+          align-items: flex-end;
         }
       }
 
-      &__card {
-        padding: 1rem;
-        background: var(--surface-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 0.5rem;
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+        flex: 1;
+      }
 
-        h4 {
-          font-size: 0.875rem;
-          font-weight: 600;
-          margin: 0 0 0.5rem 0;
+      .filter-label {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+
+      .filter-input,
+      .filter-select {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        background: var(--surface-bg);
+        color: var(--text-muted);
+        cursor: not-allowed;
+      }
+
+      .scope-guide {
+        margin-top: 2rem;
+
+        &__title {
+          font-size: 1.125rem;
+          font-weight: 700;
+          margin: 0 0 1rem 0;
           color: var(--text-primary);
         }
 
-        p {
-          font-size: 0.8125rem;
-          color: var(--text-secondary);
-          margin: 0;
-          line-height: 1.4;
+        &__grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 1rem;
+
+          @media (min-width: 640px) {
+            grid-template-columns: repeat(2, 1fr);
+          }
+
+          @media (min-width: 1024px) {
+            grid-template-columns: repeat(4, 1fr);
+          }
+        }
+
+        &__card {
+          padding: 1rem;
+          background: var(--surface-bg);
+          border: 1px solid var(--border-color);
+          border-radius: 0.5rem;
+
+          h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem 0;
+            color: var(--text-primary);
+          }
+
+          p {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.4;
+          }
         }
       }
-    }
-  `],
+    `,
+  ],
 })
 export class VolunteersComponent {}

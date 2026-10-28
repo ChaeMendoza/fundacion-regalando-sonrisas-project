@@ -23,77 +23,79 @@ import { Component, input } from '@angular/core';
       </div>
     </header>
   `,
-  styles: [`
-    .page-header {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      padding-bottom: 1.5rem;
-      margin-bottom: 1.5rem;
-      border-bottom: 1px solid var(--border-color, #e2e8f0);
-
-      @media (min-width: 768px) {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      &__content {
+  styles: [
+    `
+      .page-header {
         display: flex;
-        align-items: flex-start;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-      }
-
-      &__title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--text-primary, #0f172a);
-        margin: 0;
-        line-height: 1.25;
+        flex-direction: column;
+        gap: 1rem;
+        padding-bottom: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-color, #e2e8f0);
 
         @media (min-width: 768px) {
-          font-size: 1.875rem;
-        }
-      }
-
-      &__subtitle {
-        font-size: 0.875rem;
-        color: var(--text-secondary, #64748b);
-        margin: 0.25rem 0 0 0;
-      }
-
-      &__badge {
-        display: inline-flex;
-        align-items: center;
-        font-size: 0.75rem;
-        font-weight: 600;
-        padding: 0.25rem 0.625rem;
-        border-radius: 9999px;
-
-        &--info {
-          background-color: #e0f2fe;
-          color: #0369a1;
+          flex-direction: row;
+          align-items: center;
+          justify-content: space-between;
         }
 
-        &--warning {
-          background-color: #fef3c7;
-          color: #b45309;
+        &__content {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.75rem;
+          flex-wrap: wrap;
         }
 
-        &--success {
-          background-color: #dcfce7;
-          color: #15803d;
+        &__title {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: var(--text-primary, #0f172a);
+          margin: 0;
+          line-height: 1.25;
+
+          @media (min-width: 768px) {
+            font-size: 1.875rem;
+          }
+        }
+
+        &__subtitle {
+          font-size: 0.875rem;
+          color: var(--text-secondary, #64748b);
+          margin: 0.25rem 0 0 0;
+        }
+
+        &__badge {
+          display: inline-flex;
+          align-items: center;
+          font-size: 0.75rem;
+          font-weight: 600;
+          padding: 0.25rem 0.625rem;
+          border-radius: 9999px;
+
+          &--info {
+            background-color: #e0f2fe;
+            color: #0369a1;
+          }
+
+          &--warning {
+            background-color: #fef3c7;
+            color: #b45309;
+          }
+
+          &--success {
+            background-color: #dcfce7;
+            color: #15803d;
+          }
+        }
+
+        &__actions {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
         }
       }
-
-      &__actions {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-      }
-    }
-  `],
+    `,
+  ],
 })
 export class PageHeaderComponent {
   readonly title = input.required<string>();

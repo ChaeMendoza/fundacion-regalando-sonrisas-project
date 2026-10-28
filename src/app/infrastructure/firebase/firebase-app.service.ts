@@ -4,7 +4,7 @@ import { Auth, connectAuthEmulator, getAuth } from 'firebase/auth';
 import { Firestore, connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
 import { FirebaseStorage, connectStorageEmulator, getStorage } from 'firebase/storage';
 import { Functions, connectFunctionsEmulator, getFunctions } from 'firebase/functions';
-import { environment } from '../../../../environments/environment';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -60,22 +60,22 @@ export class FirebaseAppService {
         connectAuthEmulator(
           this.authInstance,
           `${environment.emulators.authHost}:${environment.emulators.authPort}`,
-          { disableWarnings: true }
+          { disableWarnings: true },
         );
         connectFirestoreEmulator(
           this.firestoreInstance,
           environment.emulators.firestoreHost,
-          environment.emulators.firestorePort
+          environment.emulators.firestorePort,
         );
         connectStorageEmulator(
           this.storageInstance,
           environment.emulators.storageHost,
-          environment.emulators.storagePort
+          environment.emulators.storagePort,
         );
         connectFunctionsEmulator(
           this.functionsInstance,
           environment.emulators.functionsHost,
-          environment.emulators.functionsPort
+          environment.emulators.functionsPort,
         );
         this.emulatorsConnected = true;
       } catch (err) {

@@ -17,9 +17,7 @@ describe('DashboardComponent', () => {
 
   it('should render the page title and description', () => {
     const element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelector('.page-header__title')?.textContent).toContain(
-      'Panel de Control'
-    );
+    expect(element.querySelector('.page-header__title')?.textContent).toContain('Panel de Control');
   });
 
   it('should display the core module cards', () => {

@@ -1,27 +1,26 @@
 import { TestBed } from '@angular/core/testing';
-import { AuthService } from './auth.service';
-import { FirebaseAppService } from './firebase-app.service';
+import { AppUser } from '../../domain/entities/user.entity';
+import { FirebaseAuthRepository } from './firebase-auth.repository';
 
-describe('AuthService', () => {
-  let service: AuthService;
+describe('FirebaseAuthRepository', () => {
+  let repository: FirebaseAuthRepository;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [AuthService, FirebaseAppService],
-    });
-    service = TestBed.inject(AuthService);
+    TestBed.configureTestingModule({});
+    repository = TestBed.inject(FirebaseAuthRepository);
   });
 
   it('should initialize with active development user', () => {
-    expect(service.isAuthenticated()).toBe(true);
-    expect(service.currentUser()?.email).toContain('admin.demo@regalandosonrisas.ec');
-    expect(service.userRole()).toBe('admin');
+    const user = repository.getCurrentUser();
+    expect(user?.email).toContain('admin.demo@regalandosonrisas.ec');
+    expect(user?.role).toBe('admin');
   });
 
-  it('should update state when logging out', async () => {
-    await service.logout();
-    expect(service.isAuthenticated()).toBe(false);
-    expect(service.currentUser()).toBeNull();
-    expect(service.userRole()).toBeNull();
+  it('should notify listeners when logging out', async () => {
+    const states: (AppUser | null)[] = [];
+    repository.observeAuthState((u) => states.push(u));
+    await repository.logout();
+    expect(repository.getCurrentUser()).toBeNull();
+    expect(states.at(-1)).toBeNull();
   });
 });

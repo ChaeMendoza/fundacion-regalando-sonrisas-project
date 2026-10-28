@@ -1,15 +1,15 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { AuthService } from '../services/firebase/auth.service';
+import { SessionStore } from '../state/session.store';
 
 /**
  * Guard funcional para proteger rutas que requieren sesión activa.
  */
 export const authGuard: CanActivateFn = () => {
-  const authService = inject(AuthService);
+  const session = inject(SessionStore);
   const router = inject(Router);
 
-  if (authService.isAuthenticated()) {
+  if (session.isAuthenticated()) {
     return true;
   }
 

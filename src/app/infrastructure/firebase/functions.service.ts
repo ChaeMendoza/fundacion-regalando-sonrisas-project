@@ -17,7 +17,7 @@ export class FunctionsService {
    */
   async call<TRequest = unknown, TResponse = unknown>(
     functionName: string,
-    data?: TRequest
+    data?: TRequest,
   ): Promise<TResponse> {
     const callable = httpsCallable<TRequest, TResponse>(this.functions, functionName);
     const result: HttpsCallableResult<TResponse> = await callable(data);

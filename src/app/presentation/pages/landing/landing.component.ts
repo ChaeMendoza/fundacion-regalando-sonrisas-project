@@ -36,7 +36,11 @@ interface Pillar {
             <a routerLink="/dashboard" class="landing-nav__btn">
               <span>Ingresar al Sistema</span>
               <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
-                <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd"/>
+                <path
+                  fill-rule="evenodd"
+                  d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z"
+                  clip-rule="evenodd"
+                />
               </svg>
             </a>
           </nav>
@@ -53,25 +57,29 @@ interface Pillar {
             </div>
 
             <h1 class="hero__title">
-              Sembrando esperanza y transformando vidas con <span class="highlight-text">solidaridad</span>
+              Sembrando esperanza y transformando vidas con
+              <span class="highlight-text">solidaridad</span>
             </h1>
 
             <p class="hero__description">
-              En la <strong>Fundación Regalando Sonrisas</strong> trabajamos activamente por el bienestar,
-              la inclusión y el apoyo integral a familias y personas en situación de vulnerabilidad en Quito.
-              Centralizamos nuestra gestión para garantizar un servicio humano, transparente y eficiente.
+              En la <strong>Fundación Regalando Sonrisas</strong> trabajamos activamente por el
+              bienestar, la inclusión y el apoyo integral a familias y personas en situación de
+              vulnerabilidad en Quito. Centralizamos nuestra gestión para garantizar un servicio
+              humano, transparente y eficiente.
             </p>
 
             <div class="hero__actions">
               <a routerLink="/dashboard" class="btn-primary-hero">
                 <span>Acceder al Sistema de Gestión</span>
                 <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18">
-                  <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                  <path
+                    fill-rule="evenodd"
+                    d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  />
                 </svg>
               </a>
-              <a href="#ejes-de-accion" class="btn-secondary-hero">
-                Conocer Nuestra Labor
-              </a>
+              <a href="#ejes-de-accion" class="btn-secondary-hero"> Conocer Nuestra Labor </a>
             </div>
 
             <!-- Datos Clave Institucionales -->
@@ -132,8 +140,9 @@ interface Pillar {
             <span class="section-badge">Nuestra Misión</span>
             <h2 class="section-title">Una labor con corazón y compromiso comunitario</h2>
             <p class="section-subtitle">
-              Nacimos para brindar ayuda efectiva y digna a personas en condiciones de vulnerabilidad,
-              fomentando la solidaridad y la participación ciudadana en la capital ecuatoriana.
+              Nacimos para brindar ayuda efectiva y digna a personas en condiciones de
+              vulnerabilidad, fomentando la solidaridad y la participación ciudadana en la capital
+              ecuatoriana.
             </p>
           </div>
 
@@ -155,8 +164,8 @@ interface Pillar {
               </div>
               <h3 class="about-card__title">Canalización Transparente</h3>
               <p class="about-card__text">
-                Cada aporte, donación de alimentos o enseres es registrado con respaldo documental
-                y comprobantes que verifican su llegada a los destinatarios finales.
+                Cada aporte, donación de alimentos o enseres es registrado con respaldo documental y
+                comprobantes que verifican su llegada a los destinatarios finales.
               </p>
             </div>
 
@@ -181,7 +190,8 @@ interface Pillar {
             <span class="section-badge">Qué Hacemos</span>
             <h2 class="section-title">Ejes Principales de Nuestra Acción Institucional</h2>
             <p class="section-subtitle">
-              Estructuramos nuestras actividades para atender áreas clave de desarrollo y bienestar comunitario.
+              Estructuramos nuestras actividades para atender áreas clave de desarrollo y bienestar
+              comunitario.
             </p>
           </div>
 
@@ -205,12 +215,15 @@ interface Pillar {
           <div class="system-box">
             <div class="system-box__content">
               <span class="system-box__badge">Innovación y Gobernanza</span>
-              <h2 class="system-box__title">Evolucionando hacia una gestión digital centralizada</h2>
+              <h2 class="system-box__title">
+                Evolucionando hacia una gestión digital centralizada
+              </h2>
               <p class="system-box__text">
-                Para superar los desafíos de información dispersa en hojas de cálculo y documentos físicos,
-                la Fundación ha implementado este <strong>Sistema de Gestión Integral</strong>.
-                La plataforma garantiza que cada beneficiario, donación y actividad cuente con historial
-                inmutable, auditoría de operaciones y estricta protección de datos personales.
+                Para superar los desafíos de información dispersa en hojas de cálculo y documentos
+                físicos, la Fundación ha implementado este
+                <strong>Sistema de Gestión Integral</strong>. La plataforma garantiza que cada
+                beneficiario, donación y actividad cuente con historial inmutable, auditoría de
+                operaciones y estricta protección de datos personales.
               </p>
               <div class="system-box__features">
                 <div class="system-feature">
@@ -252,7 +265,8 @@ interface Pillar {
               />
             </div>
             <p class="landing-footer__tagline">
-              Organización sin fines de lucro comprometida con el bienestar y la dignidad de las familias en Quito, Ecuador.
+              Organización sin fines de lucro comprometida con el bienestar y la dignidad de las
+              familias en Quito, Ecuador.
             </p>
           </div>
 
@@ -278,10 +292,12 @@ interface Pillar {
 
         <div class="landing-footer__bottom">
           <p>
-            &copy; {{ currentYear }} Fundación Regalando Sonrisas &bull; Quito, Ecuador. Todos los derechos reservados.
+            &copy; {{ currentYear }} Fundación Regalando Sonrisas &bull; Quito, Ecuador. Todos los
+            derechos reservados.
           </p>
           <p class="landing-footer__academic">
-            Proyecto de Titulación &bull; <a href="https://github.com/ChaeMendoza" target="_blank">Chae Mendoza</a>
+            Proyecto de Titulación &bull;
+            <a href="https://github.com/ChaeMendoza" target="_blank">Chae Mendoza</a>
           </p>
         </div>
       </footer>
@@ -295,25 +311,29 @@ export class LandingComponent {
   readonly pillars: Pillar[] = [
     {
       title: 'Beneficiarios y Familias',
-      description: 'Atención integral, relevamiento de necesidades prioritarias y dignificación de hogares en situación de vulnerabilidad.',
+      description:
+        'Atención integral, relevamiento de necesidades prioritarias y dignificación de hogares en situación de vulnerabilidad.',
       icon: '👨‍👩‍👧',
       color: '#e0f2fe',
     },
     {
       title: 'Donaciones con Trazabilidad',
-      description: 'Recepción y entrega de aportes en especies, víveres y enseres con registro transparente de comprobantes y destinatarios.',
+      description:
+        'Recepción y entrega de aportes en especies, víveres y enseres con registro transparente de comprobantes y destinatarios.',
       icon: '📦',
       color: '#dcfce7',
     },
     {
       title: 'Red de Voluntarios',
-      description: 'Convocatoria y organización de voluntarios comprometidos con el servicio solidario y jornadas en distintos sectores de Quito.',
+      description:
+        'Convocatoria y organización de voluntarios comprometidos con el servicio solidario y jornadas en distintos sectores de Quito.',
       icon: '🤝',
       color: '#fef3c7',
     },
     {
       title: 'Actividades Comunitarias',
-      description: 'Eventos educativos, jornadas de integración social y campañas de recolección para llevar sonrisas a los sectores más necesitados.',
+      description:
+        'Eventos educativos, jornadas de integración social y campañas de recolección para llevar sonrisas a los sectores más necesitados.',
       icon: '🎈',
       color: '#fee2e2',
     },

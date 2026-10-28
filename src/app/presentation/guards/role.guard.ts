@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivateFn, Router } from '@angular/router';
-import { AuthService } from '../services/firebase/auth.service';
-import { UserRole } from '../models/user.model';
+import { SessionStore } from '../state/session.store';
+import { UserRole } from '../../domain/entities/user.entity';
 
 /**
  * Guard funcional para validar roles de acceso.
@@ -11,11 +11,11 @@ import { UserRole } from '../models/user.model';
  * La arquitectura permite agregar o modificar roles sin rehacer la navegación.
  */
 export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
-  const authService = inject(AuthService);
+  const session = inject(SessionStore);
   const router = inject(Router);
 
   const allowedRoles = route.data['roles'] as UserRole[] | undefined;
-  const currentRole = authService.userRole();
+  const currentRole = session.userRole();
 
   if (!allowedRoles || allowedRoles.length === 0) {
     return true;
