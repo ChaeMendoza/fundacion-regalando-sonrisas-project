@@ -1,134 +1,117 @@
 # Sistema de Gestión Integral — Fundación Regalando Sonrisas
 
-Aplicación web institucional orientada a centralizar y optimizar la gestión operativa, asistencial, documental y de voluntariado de la **Fundación Regalando Sonrisas** (organización sin fines de lucro ubicada en Quito, Ecuador).
+<p align="center">
+  <img src="public/images/logo-fundacion.jpg" alt="Texto alternativo" width="400" style="border-radius: 12px;">
+</p>
 
-Desarrollada como proyecto de titulación profesional bajo una metodología incremental, conservadora y fundamentada en documentación verificable.
+Aplicación web para la Fundación Regalando Sonrisas, organización sin fines de lucro ubicada en Quito, Ecuador. El repositorio contiene un **prototipo funcional** y una base bajo Clean Architecture.
 
----
+Las páginas y módulos de la interfaz muestran el flujo de referencia del sistema; no implican que todas las funciones de gestión, persistencia o seguridad estén implementadas. La autenticación conserva un usuario demo y los roles continúan pendientes de validación institucional. No se deben asumir como funcionalidades terminadas las propuestas descritas en la documentación.
 
-## 1. Tecnologías y Herramientas
+## Tecnologías
 
-* **Frontend:** [Angular](https://angular.dev/) (v22+) con componentes Standalone y Signals.
-* **Lenguaje:** [TypeScript](https://www.typescriptlang.org/) (estricto).
-* **Estilos:** SCSS modular con variables semánticas y diseño responsive accesible (computadores, laptops, tablets y móviles).
-* **Autenticación:** Firebase Authentication.
-* **Base de Datos:** Cloud Firestore (NoSQL orientado a documentos).
-* **Almacenamiento de Archivos:** Cloud Storage for Firebase.
-* **Backend y Lógica Privilegiada:** Cloud Functions for Firebase.
-* **Despliegue y CDN:** Firebase Hosting.
-* **Pruebas Unitarias:** Vitest.
-* **Calidad de Código:** ESLint (`@angular-eslint`) y Prettier.
+- **Frontend:** Angular 22, componentes standalone y Signals.
+- **Lenguaje:** TypeScript.
+- **Estilos:** SCSS.
+- **Servicios Firebase disponibles en el proyecto:** Authentication, Cloud Firestore, Cloud Storage, Cloud Functions y Firebase Hosting.
+- **Pruebas:** Vitest.
+- **Calidad:** ESLint con `angular-eslint` y Prettier.
+- **Backend:** Cloud Functions for Firebase en `functions/` (proyecto Node.js 20).
 
----
+## Requisitos previos
 
-## 2. Requisitos Previos
+- Node.js compatible con Angular 22 (Node 20.19+, 22.12+ o 24+).
+- npm.
+- Java si se ejecuta la suite de emuladores de Firebase.
 
-* **Node.js:** Versión 20.x, 22.x o 24.x LTS (compatible con Node 26.x).
-* **npm:** Versión 10.x o superior.
-* **Java:** Requerido únicamente si se ejecutan los emuladores locales de Firebase (`firebase emulators:start`).
+## Instalación y ejecución local
 
----
+```bash
+git clone https://github.com/ChaeMendoza/fundacion-regalando-sonrisas-project.git
+cd fundacion-regalando-sonrisas-project
+npm ci
+npm start
+```
 
-## 3. Instalación
+La aplicación de desarrollo queda disponible en `http://localhost:4200`.
 
-1. Clonar el repositorio:
-   ```bash
-   git clone https://github.com/ChaeMendoza/fundacion-regalando-sonrisas-project.git
-   cd p_final
-   ```
+## Configuración de Firebase
 
-2. Instalar dependencias del proyecto:
-   ```bash
-   npm install
-   ```
+La configuración utilizada por defecto está en `src/environments/environment.ts`. Contiene valores demo y `useEmulators: false`; no representa credenciales de un proyecto Firebase real.
 
----
+Para conectar un proyecto real, configura los valores Firebase apropiados para desarrollo en ese archivo y reemplaza los marcadores de `src/environments/environment.production.ts` mediante un proceso seguro de despliegue. No publiques credenciales privadas ni despliegues con los valores placeholder. La plantilla de referencia está en `src/environments/environment.example.ts`.
 
-## 4. Configuración de Ambientes y Firebase
+Los emuladores definidos por `firebase.json` usan estos puertos:
 
-Para mantener la seguridad y evitar la exposición de secretos en el control de versiones, el proyecto maneja la configuración de forma estricta:
+| Servicio | Dirección |
+| --- | --- |
+| Authentication | `localhost:9099` |
+| Firestore | `localhost:8080` |
+| Storage | `localhost:9199` |
+| Functions | `localhost:5001` |
+| Hosting | `localhost:5000` |
+| Emulator UI | `localhost:4000` |
 
-1. El archivo `src/environments/environment.example.ts` contiene la plantilla pública de variables.
-2. Para desarrollo local, revise `src/environments/environment.ts`.
-3. Si desea conectar el proyecto a su instancia real de Firebase, actualice las credenciales en `src/environments/environment.ts` o genere `src/environments/environment.local.ts` (ignorado automáticamente por `.gitignore`).
-4. Para despliegues en producción, el comando `npm run build` utiliza automáticamente `src/environments/environment.production.ts`.
+Para conectarse a ellos, habilita `useEmulators` en `src/environments/environment.ts` y ejecuta:
 
-### Emuladores Locales de Firebase
-El proyecto está preconfigurado para utilizar la suite de emuladores locales sin necesidad de consumir cuotas de Firebase en la nube:
-* **Auth Emulator:** `http://localhost:9099`
-* **Firestore Emulator:** `localhost:8080`
-* **Storage Emulator:** `localhost:9199`
-* **Functions Emulator:** `localhost:5001`
-* **Emulator UI (Panel web):** `http://localhost:4000`
-
-Para iniciar los emuladores:
 ```bash
 npm run emulators:start
 ```
 
----
-
-## 5. Comandos Principales
+## Comandos
 
 | Comando | Descripción |
-| :--- | :--- |
-| `npm start` | Inicia el servidor de desarrollo local de Angular en `http://localhost:4200` |
-| `npm run build` | Compila la aplicación para producción en la carpeta `dist/` |
-| `npm test` | Ejecuta la suite de pruebas unitarias mediante Vitest |
-| `npm run lint` | Ejecuta el análisis estático de código con ESLint |
-| `npm run emulators:start` | Inicia la suite local de emuladores de Firebase |
-| `npm run deploy:hosting` | Despliega los archivos estáticos en Firebase Hosting |
+| --- | --- |
+| `npm start` | Inicia el servidor de desarrollo Angular. |
+| `npm run build` | Compila la aplicación; por defecto utiliza la configuración de producción. |
+| `npm test` | Ejecuta las pruebas unitarias. |
+| `npm run lint` | Analiza el código Angular con ESLint. |
+| `npm run emulators:start` | Inicia los emuladores configurados en `firebase.json`. |
+| `npm run deploy:hosting` | Despliega Hosting con Firebase CLI, una vez configurado el proyecto destino. |
+| `npm --prefix functions run build` | Compila el backend de Cloud Functions. |
 
----
+## Arquitectura
 
-## 6. Estructura General del Proyecto
+La aplicación Angular está organizada en capas. Las dependencias apuntan hacia las capas internas: Presentation puede usar Application; Application depende de Domain; Infrastructure implementa contratos definidos en Domain. `app.providers.ts` es la raíz de composición que enlaza implementaciones con sus abstracciones.
 
-```
-p_final/
-├── docs/                     # Documentación de arquitectura y decisiones
-│   └── architecture.md       # Arquitectura técnica, NoSQL y matriz de seguridad
-├── functions/                # Backend con Cloud Functions for Firebase
-│   ├── src/index.ts          # Endpoints de salud y auditoría privilegiada
-│   └── tsconfig.json         # Configuración TypeScript del backend
-├── public/                   # Recursos estáticos públicos (favicon, etc.)
-├── src/
-│   ├── app/
-│   │   ├── core/             # Servicios transversales singleton
-│   │   │   ├── guards/       # authGuard, roleGuard
-│   │   │   ├── models/       # user.model.ts, audit.model.ts
-│   │   │   └── services/     # FirebaseApp, Auth, Firestore, Storage, Functions, Audit
-│   │   ├── layout/           # Componentes estructurales (Sidebar, Header, Footer, MainLayout)
-│   │   ├── shared/           # Componentes UI reutilizables (StatCard, PageHeader, etc.)
-│   │   ├── features/         # Módulos del sistema cargados perezosamente (Lazy Loading)
-│   │   │   ├── dashboard/    # Panel general e indicadores
-│   │   │   ├── beneficiaries/# Gestión de beneficiarios
-│   │   │   ├── donations/    # Control de donaciones
-│   │   │   ├── volunteers/   # Padrón de voluntarios
-│   │   │   ├── activities/   # Eventos comunitarios y entregas
-│   │   │   ├── documents/    # Repositorio documental
-│   │   │   ├── reports/      # Reportes e indicadores
-│   │   │   └── admin/        # Administración y auditoría
-│   │   ├── app.config.ts     # Proveedores globales de Angular
-│   │   ├── app.routes.ts     # Tabla de enrutamiento modular
-│   │   └── app.ts            # Componente raíz
-│   ├── environments/         # Modelos y configuraciones de entorno
-│   ├── styles.scss           # Estilos globales y variables de diseño
-│   └── index.html            # Plantilla HTML base
-├── angular.json              # Configuración del workspace de Angular CLI
-├── firebase.json             # Configuración de servicios y emuladores de Firebase
-├── firestore.rules           # Reglas de seguridad de Cloud Firestore
-├── storage.rules             # Reglas de seguridad de Cloud Storage
-└── package.json              # Manifiesto de dependencias y scripts
+```text
+src/
+├── app/
+│   ├── domain/
+│   │   ├── entities/             # User y AuditLog
+│   │   └── repositories/         # Contratos AuthRepository y AuditLogRepository
+│   ├── application/
+│   │   └── use-cases/
+│   │       ├── auth/             # Login, logout y observación de sesión
+│   │       └── audit/            # Registro y consulta de auditoría
+│   ├── infrastructure/
+│   │   ├── firebase/             # Adaptadores técnicos Firebase
+│   │   └── repositories/         # Implementaciones Firebase de los contratos
+│   ├── presentation/
+│   │   ├── pages/                # Landing y páginas del prototipo
+│   │   ├── layout/               # Header, sidebar, footer y layout principal
+│   │   ├── shared/components/    # Componentes de interfaz reutilizables
+│   │   ├── guards/               # Guards de autenticación y rol
+│   │   ├── state/                # Estado reactivo de sesión para la UI
+│   │   └── config/               # Tokens de configuración de presentación
+│   ├── app.routes.ts             # Rutas de la aplicación
+│   ├── app.config.ts             # Configuración de Angular
+│   └── app.providers.ts          # Composición de casos de uso y adaptadores
+├── environments/                 # Configuración de los entornos
+└── styles.scss                   # Estilos globales
+functions/                        # Backend Cloud Functions
+docs/architecture.md              # Descripción arquitectónica y decisiones documentadas
 ```
 
----
+El detalle de las capas y los contratos está en [`docs/architecture.md`](docs/architecture.md).
 
-## 7. Reglas y Límites del Alcance
+## Alcance y estado
 
-De acuerdo con los lineamientos del proyecto de titulación:
-
-1. **Sin invención de requisitos:** No se agregan campos ni entidades que no estén formalmente justificadas en la documentación.
-2. **Exclusiones mandatorias:** El sistema no incluye módulos contables, nómina, facturación electrónica ni pasarelas de pago.
-3. **Roles en validación:** La distinción entre roles y la naturaleza de "Personal Autorizado" está sujeta a validación con la directiva de la Fundación.
-4. **Trazabilidad:** Cada cambio relevante queda registrado bajo el usuario autenticado con bitácora inmutable.
-5. **Funcionalidades de expansión:** La gestión de emprendedoras del proyecto *"Emprendiendo e Innovando Desde Casa"* y alianzas institucionales se encuentran documentadas pero reservadas para futuros incrementos tras su validación.
+- Las páginas de dashboard, beneficiarios, donaciones, voluntarios, actividades, documentos, reportes y administración son parte de la interfaz del prototipo. Su presencia no implica que exista persistencia completa o flujos CRUD integrados.
+- La capa de autenticación mantiene la sesión demo existente para facilitar la navegación del prototipo. La asignación real de roles no está resuelta.
+- Existen adaptadores para Firebase y casos de uso de autenticación y auditoría; no todos los servicios están conectados a páginas o flujos de usuario.
+- Las rutas actuales no aplican los guards de autenticación y rol.
+- Cloud Functions contiene `healthCheck` y una callable `logAuditEvent`; su presencia no significa que la aplicación cliente delegue actualmente toda la auditoría al backend.
+- La estructura Firestore, reglas y funcionalidades de negocio pendientes requieren validación formal antes de considerarse requisitos implementados.
+- Las definiciones de roles, campos obligatorios y reglas institucionales continúan sujetas a validación.
+- El alcance documentado excluye módulos contables, nómina, facturación electrónica y pasarelas de pago. Las ideas de expansión requieren aprobación antes de desarrollarse.
