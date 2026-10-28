@@ -217,7 +217,7 @@ export class HeaderComponent {
     return name.slice(0, 2).toUpperCase();
   }
 
-  formatRole(role?: string): string {
+  formatRole(role?: string | null): string {
     switch (role) {
       case 'admin':
         return 'Administrador';

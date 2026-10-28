@@ -27,9 +27,9 @@ describe('LandingComponent', () => {
     expect(cards.length).toBe(4);
   });
 
-  it('should have a link to enter the internal system', () => {
+  it('should direct system access to the login page', () => {
     const element = fixture.nativeElement as HTMLElement;
-    const enterButtons = element.querySelectorAll('a[href="/dashboard"]');
+    const enterButtons = element.querySelectorAll('a[href="/login"]');
     expect(enterButtons.length).toBeGreaterThan(0);
   });
 });

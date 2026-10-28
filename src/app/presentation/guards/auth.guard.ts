@@ -5,14 +5,18 @@ import { SessionStore } from '../state/session.store';
 /**
  * Guard funcional para proteger rutas que requieren sesión activa.
  */
-export const authGuard: CanActivateFn = () => {
+export const authGuard: CanActivateFn = async () => {
   const session = inject(SessionStore);
   const router = inject(Router);
+  const user = await session.waitUntilInitialized();
 
-  if (session.isAuthenticated()) {
+  if (!user) {
+    return router.createUrlTree(['/login']);
+  }
+
+  if (user.status === 'active' && user.role) {
     return true;
   }
 
-  // Redirigir a inicio si no está autenticado
-  return router.createUrlTree(['/']);
+  return router.createUrlTree(['/pending']);
 };

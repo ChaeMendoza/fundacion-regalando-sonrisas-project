@@ -33,7 +33,7 @@ interface Pillar {
             <a href="#sobre-nosotros" class="landing-nav__link">Sobre la Fundación</a>
             <a href="#ejes-de-accion" class="landing-nav__link">Ejes de Acción</a>
             <a href="#transparencia" class="landing-nav__link">Transparencia</a>
-            <a routerLink="/dashboard" class="landing-nav__btn">
+            <a routerLink="/login" class="landing-nav__btn">
               <span>Ingresar al Sistema</span>
               <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
                 <path
@@ -69,7 +69,7 @@ interface Pillar {
             </p>
 
             <div class="hero__actions">
-              <a routerLink="/dashboard" class="btn-primary-hero">
+              <a routerLink="/login" class="btn-primary-hero">
                 <span>Acceder al Sistema de Gestión</span>
                 <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18">
                   <path
@@ -244,7 +244,7 @@ interface Pillar {
                 </div>
               </div>
               <div class="system-box__actions">
-                <a routerLink="/dashboard" class="btn-primary-hero">
+                <a routerLink="/login" class="btn-primary-hero">
                   Acceso para Colaboradores y Personal
                 </a>
               </div>
@@ -276,7 +276,7 @@ interface Pillar {
               <li><a href="#sobre-nosotros">Sobre la Fundación</a></li>
               <li><a href="#ejes-de-accion">Ejes de Acción</a></li>
               <li><a href="#transparencia">Transparencia</a></li>
-              <li><a routerLink="/dashboard">Sistema Interno</a></li>
+              <li><a routerLink="/login">Sistema Interno</a></li>
             </ul>
           </div>
 
