@@ -1,6 +1,6 @@
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   'auth/invalid-credential': 'El correo o la contraseña no son correctos.',
-  'auth/user-not-found': 'No existe una cuenta con ese correo electrónico.',
+  'auth/user-not-found': 'El correo o la contraseña no son correctos.',
   'auth/wrong-password': 'El correo o la contraseña no son correctos.',
   'auth/email-already-in-use': 'Ya existe una cuenta registrada con ese correo.',
   'auth/invalid-email': 'Ingresa un correo electrónico válido.',

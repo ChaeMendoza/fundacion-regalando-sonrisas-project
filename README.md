@@ -39,9 +39,17 @@ La portada institucional permanece en `/`. El acceso al sistema está disponible
 
 ## Configuración de Firebase
 
-La configuración utilizada por defecto está en `src/environments/environment.ts`. Contiene valores demo y `useEmulators: false`; no representa credenciales de un proyecto Firebase real.
+La configuración del proyecto Firebase está centralizada en `src/environments/firebase-config.ts`. Contiene la configuración web pública del proyecto Firebase utilizado por producción; no incluye credenciales administrativas. Las claves de configuración web no autorizan acceso por sí mismas: restringe su uso desde Google Cloud Console y protege los datos mediante Firebase Security Rules.
 
-Para conectar un proyecto real, configura los valores Firebase apropiados para desarrollo en ese archivo y reemplaza los marcadores de `src/environments/environment.production.ts` mediante un proceso seguro de despliegue. No publiques credenciales privadas ni despliegues con los valores placeholder. La plantilla de referencia está en `src/environments/environment.example.ts`.
+El entorno local usa un proyecto demo aislado y los emuladores; no crea usuarios ni modifica datos del proyecto real. El entorno de producción reutiliza la configuración central y desactiva los emuladores. Angular sustituye la configuración de entorno durante la compilación, y Firebase Hosting entrega el resultado compilado; no se requieren variables de entorno en tiempo de ejecución ni cambios manuales de código para desplegar.
+
+La sesión del navegador usa la persistencia local administrada por el SDK oficial de Firebase Authentication; la aplicación no guarda contraseñas ni tokens por su cuenta.
+
+En una terminal inicia los emuladores y, en otra, ejecuta `npm start`. La aplicación estará disponible en `http://localhost:4200`; la UI de los emuladores está en `http://localhost:4000`. Las cuentas registradas localmente existen solo en el emulador. El emulador de Authentication muestra los enlaces de recuperación para pruebas.
+
+Para validar localmente contra el proyecto Firebase real sin editar archivos, usa `npx ng serve --configuration=production`. Esta opción usa los servicios reales: no la uses para crear cuentas de prueba ni modificar datos sin autorización. Habilita **Email/Password** y **Email Enumeration Protection** en Authentication. Añade `localhost` y los dominios reales de Hosting (por ejemplo, `fir-chae-projects.web.app` y `fir-chae-projects.firebaseapp.com`) a los dominios autorizados. Un dominio personalizado debe añadirse también en Firebase Console.
+
+El despliegue de Hosting continúa usando la configuración SPA existente en `firebase.json`. Antes de desplegar, configura el proyecto destino con Firebase CLI/CI y compila con `npm run build`; este repositorio no contiene un alias `.firebaserc` para evitar seleccionar implícitamente un proyecto de despliegue.
 
 Los emuladores definidos por `firebase.json` usan estos puertos:
 

@@ -6,6 +6,7 @@ import { LoginUseCase } from './application/use-cases/auth/login.use-case';
 import { LogoutUseCase } from './application/use-cases/auth/logout.use-case';
 import { ObserveSessionUseCase } from './application/use-cases/auth/observe-session.use-case';
 import { RegisterUseCase } from './application/use-cases/auth/register.use-case';
+import { SendPasswordResetEmailUseCase } from './application/use-cases/auth/send-password-reset-email.use-case';
 import { AuditLogRepository } from './domain/repositories/audit-log.repository';
 import { AuthRepository } from './domain/repositories/auth.repository';
 import { UserProfileRepository } from './domain/repositories/user-profile.repository';
@@ -40,6 +41,11 @@ export const APP_PROVIDERS: Provider[] = [
   {
     provide: ObserveSessionUseCase,
     useFactory: (a: AuthRepository) => new ObserveSessionUseCase(a),
+    deps: [AuthRepository],
+  },
+  {
+    provide: SendPasswordResetEmailUseCase,
+    useFactory: (a: AuthRepository) => new SendPasswordResetEmailUseCase(a),
     deps: [AuthRepository],
   },
   {

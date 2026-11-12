@@ -13,8 +13,8 @@ export const environment: EnvironmentConfig = {
     appId: '1:000000000000:web:0000000000000000000000',
   },
   emulators: {
-    useEmulators: false,
-    authHost: 'http://localhost',
+    useEmulators: true,
+    authHost: 'http://127.0.0.1',
     authPort: 9099,
     firestoreHost: 'localhost',
     firestorePort: 8080,

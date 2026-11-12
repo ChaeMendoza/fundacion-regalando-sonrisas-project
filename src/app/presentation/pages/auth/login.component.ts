@@ -24,6 +24,9 @@ import { getAuthErrorMessage } from './auth-error-message';
         @if (errorMessage()) {
           <div class="auth-alert" role="alert">{{ errorMessage() }}</div>
         }
+        @if (session.sessionError(); as sessionError) {
+          <div class="auth-alert" role="alert">{{ sessionError }}</div>
+        }
 
         <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
           <label for="email">Correo electrónico</label>
@@ -39,23 +42,51 @@ import { getAuthErrorMessage } from './auth-error-message';
             <span class="field-error">Ingresa un correo electrónico válido.</span>
           }
 
-          <label for="password">Contraseña</label>
-          <input
-            id="password"
-            type="password"
-            formControlName="password"
-            autocomplete="current-password"
-            placeholder="Tu contraseña"
-            [attr.aria-invalid]="form.controls.password.invalid && form.controls.password.touched"
-          />
-          @if (form.controls.password.invalid && form.controls.password.touched) {
-            <span class="field-error">La contraseña es obligatoria.</span>
+          @if (!recovering()) {
+            <label for="password">Contraseña</label>
+            <input
+              id="password"
+              type="password"
+              formControlName="password"
+              autocomplete="current-password"
+              placeholder="Tu contraseña"
+              [attr.aria-invalid]="form.controls.password.invalid && form.controls.password.touched"
+            />
+            @if (form.controls.password.invalid && form.controls.password.touched) {
+              <span class="field-error">La contraseña es obligatoria.</span>
+            }
+            <button type="button" class="auth-text-button" (click)="startPasswordRecovery()">
+              ¿Olvidaste tu contraseña?
+            </button>
+          } @else {
+            <p class="auth-recovery-note">
+              Si la cuenta existe, enviaremos instrucciones para restablecer la contraseña.
+            </p>
           }
 
           <button type="submit" class="auth-submit" [disabled]="loading()">
-            {{ loading() ? 'Ingresando…' : 'Ingresar' }}
+            {{
+              loading()
+                ? recovering()
+                  ? 'Enviando…'
+                  : 'Ingresando…'
+                : recovering()
+                  ? 'Enviar instrucciones'
+                  : 'Ingresar'
+            }}
           </button>
+          @if (recovering()) {
+            <button type="button" class="auth-text-button" (click)="cancelPasswordRecovery()">
+              Volver a iniciar sesión
+            </button>
+          }
         </form>
+
+        @if (recoveryMessage()) {
+          <p class="auth-recovery-message" role="status" aria-live="polite">
+            {{ recoveryMessage() }}
+          </p>
+        }
 
         <p class="auth-switch">
           ¿Aún no tienes cuenta?
@@ -161,6 +192,29 @@ import { getAuthErrorMessage } from './auth-error-message';
         font-size: 0.82rem;
       }
 
+      .auth-text-button {
+        justify-self: start;
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--primary, #0284c7);
+        font: inherit;
+        font-size: 0.9rem;
+        cursor: pointer;
+      }
+
+      .auth-recovery-note,
+      .auth-recovery-message {
+        margin: 0.75rem 0 0;
+        color: var(--text-secondary, #475569);
+        font-size: 0.9rem;
+        line-height: 1.5;
+      }
+
+      .auth-recovery-message {
+        color: #166534;
+      }
+
       .auth-submit {
         min-height: 3rem;
         margin-top: 1rem;
@@ -214,6 +268,8 @@ export class LoginComponent {
 
   readonly loading = signal(false);
   readonly errorMessage = signal('');
+  readonly recovering = signal(false);
+  readonly recoveryMessage = signal('');
   readonly form = this.formBuilder.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],
@@ -221,6 +277,34 @@ export class LoginComponent {
 
   async submit(): Promise<void> {
     this.errorMessage.set('');
+    this.recoveryMessage.set('');
+    if (this.recovering()) {
+      const emailControl = this.form.controls.email;
+      if (emailControl.invalid) {
+        emailControl.markAsTouched();
+        return;
+      }
+
+      this.loading.set(true);
+      try {
+        await this.session.sendPasswordResetEmail(emailControl.value.trim());
+        this.recoveryMessage.set(
+          'Si la cuenta existe, enviaremos instrucciones para restablecer la contraseña.',
+        );
+      } catch (error) {
+        if (this.getAuthErrorCode(error) === 'auth/user-not-found') {
+          this.recoveryMessage.set(
+            'Si la cuenta existe, enviaremos instrucciones para restablecer la contraseña.',
+          );
+        } else {
+          this.errorMessage.set(getAuthErrorMessage(error));
+        }
+      } finally {
+        this.loading.set(false);
+      }
+      return;
+    }
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -238,5 +322,26 @@ export class LoginComponent {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  startPasswordRecovery(): void {
+    this.recoveryMessage.set('');
+    this.errorMessage.set('');
+    this.recovering.set(true);
+  }
+
+  cancelPasswordRecovery(): void {
+    this.recovering.set(false);
+    this.recoveryMessage.set('');
+    this.errorMessage.set('');
+  }
+
+  private getAuthErrorCode(error: unknown): string {
+    return typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      typeof error.code === 'string'
+      ? error.code
+      : '';
   }
 }

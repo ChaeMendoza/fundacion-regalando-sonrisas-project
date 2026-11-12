@@ -1,6 +1,6 @@
 import { AppUser } from '../entities/user.entity';
 
-export type AuthStateListener = (user: AppUser | null) => void;
+export type AuthStateListener = (user: AppUser | null, error?: Error) => void;
 export type Unsubscribe = () => void;
 
 /** Contrato de autenticación y sesión. La implementación vive en infraestructura. */
@@ -12,4 +12,5 @@ export abstract class AuthRepository {
   abstract login(email: string, password: string): Promise<void>;
   abstract register(displayName: string, email: string, password: string): Promise<void>;
   abstract logout(): Promise<void>;
+  abstract sendPasswordResetEmail(email: string): Promise<void>;
 }

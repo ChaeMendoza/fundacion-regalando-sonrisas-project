@@ -34,6 +34,9 @@ class FakeAuth extends AuthRepository {
   logout(): Promise<void> {
     return Promise.resolve();
   }
+  sendPasswordResetEmail(): Promise<void> {
+    return Promise.resolve();
+  }
 }
 
 describe('LogAuditEventUseCase', () => {

@@ -56,32 +56,27 @@ export class FirebaseAppService {
 
   private initEmulatorsIfEnabled(): void {
     if (environment.emulators.useEmulators && !this.emulatorsConnected) {
-      try {
-        connectAuthEmulator(
-          this.authInstance,
-          `${environment.emulators.authHost}:${environment.emulators.authPort}`,
-          { disableWarnings: true },
-        );
-        connectFirestoreEmulator(
-          this.firestoreInstance,
-          environment.emulators.firestoreHost,
-          environment.emulators.firestorePort,
-        );
-        connectStorageEmulator(
-          this.storageInstance,
-          environment.emulators.storageHost,
-          environment.emulators.storagePort,
-        );
-        connectFunctionsEmulator(
-          this.functionsInstance,
-          environment.emulators.functionsHost,
-          environment.emulators.functionsPort,
-        );
-        this.emulatorsConnected = true;
-      } catch (err) {
-        // En tests o re-renderizados los emuladores pueden estar ya vinculados
-        console.warn('Configuración de emuladores Firebase omitida o ya conectada:', err);
-      }
+      connectAuthEmulator(
+        this.authInstance,
+        `${environment.emulators.authHost}:${environment.emulators.authPort}`,
+        { disableWarnings: true },
+      );
+      connectFirestoreEmulator(
+        this.firestoreInstance,
+        environment.emulators.firestoreHost,
+        environment.emulators.firestorePort,
+      );
+      connectStorageEmulator(
+        this.storageInstance,
+        environment.emulators.storageHost,
+        environment.emulators.storagePort,
+      );
+      connectFunctionsEmulator(
+        this.functionsInstance,
+        environment.emulators.functionsHost,
+        environment.emulators.functionsPort,
+      );
+      this.emulatorsConnected = true;
     }
   }
 }

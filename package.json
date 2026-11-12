@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
-    "emulators:start": "firebase emulators:start",
+    "emulators:start": "firebase emulators:start --project demo-regalando-sonrisas",
     "deploy": "firebase deploy",
     "deploy:hosting": "firebase deploy --only hosting"
   },

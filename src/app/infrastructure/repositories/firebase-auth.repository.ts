@@ -3,6 +3,7 @@ import {
   User as FirebaseUser,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
@@ -24,6 +25,7 @@ export class FirebaseAuthRepository extends AuthRepository {
   private currentUser: AppUser | null = null;
   private authStateVersion = 0;
   private initialStateResolved = false;
+  private authStateError: Error | null = null;
   private resolveInitialState!: (user: AppUser | null) => void;
   private readonly initialState = new Promise<AppUser | null>((resolve) => {
     this.resolveInitialState = resolve;
@@ -45,7 +47,7 @@ export class FirebaseAuthRepository extends AuthRepository {
   observeAuthState(listener: AuthStateListener): Unsubscribe {
     this.listeners.add(listener);
     if (this.initialStateResolved) {
-      listener(this.currentUser);
+      listener(this.currentUser, this.authStateError ?? undefined);
     }
     return () => this.listeners.delete(listener);
   }
@@ -79,13 +81,29 @@ export class FirebaseAuthRepository extends AuthRepository {
     await signOut(this.firebaseAppService.auth);
   }
 
+  async sendPasswordResetEmail(email: string): Promise<void> {
+    await sendPasswordResetEmail(this.firebaseAppService.auth, email);
+  }
+
   private setUser(user: AppUser | null): void {
     this.currentUser = user;
+    this.authStateError = null;
     if (!this.initialStateResolved) {
       this.initialStateResolved = true;
       this.resolveInitialState(user);
     }
     this.listeners.forEach((listener) => listener(user));
+  }
+
+  private setAuthError(error: Error): void {
+    this.authStateVersion++;
+    this.currentUser = null;
+    this.authStateError = error;
+    if (!this.initialStateResolved) {
+      this.initialStateResolved = true;
+      this.resolveInitialState(null);
+    }
+    this.listeners.forEach((listener) => listener(null, error));
   }
 
   private listenToFirebaseAuthState(): void {
@@ -102,12 +120,12 @@ export class FirebaseAuthRepository extends AuthRepository {
         },
         (err: Error) => {
           console.error('No se pudo observar el estado de autenticación de Firebase:', err);
-          this.setUser(null);
+          this.setAuthError(err);
         },
       );
     } catch (err) {
       console.error('No se pudo iniciar la observación de Firebase Authentication:', err);
-      this.setUser(null);
+      this.setAuthError(err instanceof Error ? err : new Error('Error de autenticación.'));
     }
   }
 

@@ -1,23 +1,16 @@
 /**
  * Plantilla de configuración de ambiente para la Fundación Regalando Sonrisas.
  * Copie este archivo como 'environment.ts' o 'environment.local.ts' con sus credenciales del proyecto Firebase.
- * NUNCA incluya credenciales reales o API keys privadas en repositorios públicos.
+ * La configuración web de Firebase es pública; no incluya credenciales de servicio ni tokens.
  */
 import { EnvironmentConfig } from './environment.model';
+import { firebaseConfig } from './firebase-config';
 
 export const environment: EnvironmentConfig = {
   production: false,
   appName: 'Sistema de Gestión Integral - Fundación Regalando Sonrisas',
   appVersion: '0.1.0-dev',
-  firebase: {
-    apiKey: 'YOUR_FIREBASE_API_KEY',
-    authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_PROJECT_ID.appspot.com',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    appId: 'YOUR_APP_ID',
-    measurementId: 'OPTIONAL_MEASUREMENT_ID',
-  },
+  firebase: firebaseConfig,
   emulators: {
     useEmulators: false,
     authHost: 'http://localhost',
