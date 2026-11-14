@@ -1,19 +1,13 @@
 import { EnvironmentConfig } from './environment.model';
+import { firebaseConfig } from './firebase-config';
 
 export const environment: EnvironmentConfig = {
   production: false,
   appName: 'Sistema de Gestión Integral - Fundación Regalando Sonrisas',
   appVersion: '0.1.0-dev',
-  firebase: {
-    apiKey: 'demo-api-key-local',
-    authDomain: 'fundacion-regalando-sonrisas.firebaseapp.com',
-    projectId: 'demo-regalando-sonrisas',
-    storageBucket: 'demo-regalando-sonrisas.appspot.com',
-    messagingSenderId: '000000000000',
-    appId: '1:000000000000:web:0000000000000000000000',
-  },
+  firebase: firebaseConfig,
   emulators: {
-    useEmulators: true,
+    useEmulators: false,
     authHost: 'http://127.0.0.1',
     authPort: 9099,
     firestoreHost: 'localhost',

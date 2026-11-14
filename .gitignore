@@ -48,6 +48,7 @@ Thumbs.db
 .env.*
 !.env.example
 src/environments/environment.local.ts
+src/environments/firebase-config.ts
 *firebase-adminsdk*.json
 serviceAccountKey*.json
 
