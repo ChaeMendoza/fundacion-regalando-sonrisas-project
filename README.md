@@ -20,8 +20,9 @@ Las páginas y módulos de gestión muestran el flujo de referencia del sistema;
 
 ## Requisitos previos
 
-- Node.js compatible con Angular 22 (Node 20.19+, 22.12+ o 24+).
-- npm.
+- Para el frontend y Firebase CLI: Node.js 22.22.3+ de la serie 22 o 24.15.0+ de la serie 24. Angular 22 requiere esas versiones mínimas y la versión instalada de Firebase CLI incluye una dependencia que no declara soporte para Node 26.
+- Para Cloud Functions: Node.js 20, según `functions/package.json`.
+- npm 11.19.1 para el proyecto principal.
 - Java si se ejecuta la suite de emuladores de Firebase.
 
 ## Instalación y ejecución local
