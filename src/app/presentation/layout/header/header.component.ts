@@ -1,5 +1,5 @@
-import { Component, inject, output } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, inject, output, signal } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { SessionStore } from '../../state/session.store';
 import { IS_PRODUCTION } from '../../config/runtime-config.token';
 
@@ -62,6 +62,15 @@ import { IS_PRODUCTION } from '../../config/runtime-config.token';
             <span class="app-header__user-role">{{ formatRole(currentUser()?.role) }}</span>
           </div>
         </div>
+
+        <button
+          type="button"
+          class="btn btn--outline btn--sm"
+          [disabled]="signingOut()"
+          (click)="signOut()"
+        >
+          {{ signingOut() ? 'Saliendo…' : 'Salir' }}
+        </button>
       </div>
     </header>
   `,
@@ -202,7 +211,9 @@ import { IS_PRODUCTION } from '../../config/runtime-config.token';
 })
 export class HeaderComponent {
   private readonly session = inject(SessionStore);
+  private readonly router = inject(Router);
   readonly isProduction = inject(IS_PRODUCTION);
+  readonly signingOut = signal(false);
 
   readonly toggleMenu = output<void>();
 
@@ -221,12 +232,24 @@ export class HeaderComponent {
     switch (role) {
       case 'admin':
         return 'Administrador';
+      case 'user':
+        return 'Usuario Regular';
       case 'volunteer':
         return 'Voluntario';
       case 'authorized_staff':
-        return 'Personal Autorizado (Pendiente)';
+        return 'Personal Autorizado';
       default:
         return 'Usuario';
+    }
+  }
+
+  async signOut(): Promise<void> {
+    this.signingOut.set(true);
+    try {
+      await this.session.logout();
+      await this.router.navigate(['/login']);
+    } finally {
+      this.signingOut.set(false);
     }
   }
 }

@@ -1,8 +1,9 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, effect, inject, signal } from '@angular/core';
+import { Router, RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { HeaderComponent } from '../header/header.component';
 import { FooterComponent } from '../footer/footer.component';
+import { SessionStore } from '../../state/session.store';
 
 @Component({
   selector: 'app-main-layout',
@@ -96,7 +97,34 @@ import { FooterComponent } from '../footer/footer.component';
   ],
 })
 export class MainLayoutComponent {
+  private readonly session = inject(SessionStore);
+  private readonly router = inject(Router);
   readonly isMobileMenuOpen = signal(false);
+
+  constructor() {
+    // Control reactivo de sesión activa: si un administrador deshabilita, rechaza
+    // o revoca privilegios de una cuenta con sesión iniciada, se expulsa de inmediato.
+    effect(() => {
+      if (!this.session.isInitialized()) {
+        return;
+      }
+
+      const user = this.session.currentUser();
+      if (!user) {
+        void this.router.navigate(['/login']);
+        return;
+      }
+
+      if (!this.session.isApproved()) {
+        void this.router.navigate(['/pending']);
+        return;
+      }
+
+      if (this.router.url.startsWith('/admin') && !this.session.isAdmin()) {
+        void this.router.navigate(['/dashboard']);
+      }
+    });
+  }
 
   toggleMobileMenu(): void {
     this.isMobileMenuOpen.update((v) => !v);
