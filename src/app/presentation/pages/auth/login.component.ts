@@ -314,9 +314,7 @@ export class LoginComponent {
     try {
       const { email, password } = this.form.getRawValue();
       await this.session.login(email.trim(), password);
-      await this.router.navigate([
-        this.session.currentUser()?.status === 'active' ? '/dashboard' : '/pending',
-      ]);
+      await this.router.navigate([this.session.isApproved() ? '/dashboard' : '/pending']);
     } catch (error) {
       this.errorMessage.set(getAuthErrorMessage(error));
     } finally {

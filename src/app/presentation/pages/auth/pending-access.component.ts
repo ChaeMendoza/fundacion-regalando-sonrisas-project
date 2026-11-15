@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { SessionStore } from '../../state/session.store';
 
@@ -14,23 +14,38 @@ import { SessionStore } from '../../state/session.store';
           <span>Fundación Regalando Sonrisas</span>
         </a>
 
-        <div class="pending-icon" aria-hidden="true">⌛</div>
-        <h1 id="pending-title">Acceso pendiente de aprobación</h1>
+        <div
+          class="pending-icon"
+          [class.pending-icon--danger]="status() === 'rejected' || status() === 'disabled'"
+          aria-hidden="true"
+        >
+          {{ statusIcon() }}
+        </div>
+        <h1 id="pending-title">{{ statusTitle() }}</h1>
         <p>
           La cuenta
           @if (session.currentUser(); as user) {
             <strong>{{ user.email }}</strong>
           }
-          no tiene acceso activo al sistema. La asignación de acceso y roles requiere revisión de la
-          Fundación.
+          {{ statusDescription() }}
         </p>
-        <p class="pending-note">
-          Por ahora, el registro crea una cuenta de autenticación pero no asigna permisos ni activa
-          el acceso a los módulos internos.
-        </p>
+
+        @if (session.currentUser()?.rejectionReason; as reason) {
+          <p class="pending-reason"><strong>Observación del administrador:</strong> {{ reason }}</p>
+        } @else {
+          <p class="pending-note">
+            {{ statusNote() }}
+          </p>
+        }
 
         @if (errorMessage()) {
           <p class="pending-error" role="alert">{{ errorMessage() }}</p>
+        }
+
+        @if (session.isApproved()) {
+          <a routerLink="/dashboard" class="pending-button pending-button--link">
+            Ingresar al Sistema de Gestión
+          </a>
         }
 
         <button type="button" class="pending-button" [disabled]="loading()" (click)="signOut()">
@@ -87,6 +102,11 @@ import { SessionStore } from '../../state/session.store';
         background: #fef3c7;
         color: #92400e;
         font-size: 2rem;
+
+        &--danger {
+          background: #fee2e2;
+          color: #b91c1c;
+        }
       }
 
       h1 {
@@ -108,11 +128,23 @@ import { SessionStore } from '../../state/session.store';
         font-size: 0.9rem;
       }
 
+      .pending-reason {
+        padding: 0.8rem;
+        border-radius: 0.5rem;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+        font-size: 0.9rem;
+      }
+
       .pending-error {
         color: var(--danger, #dc2626);
       }
 
       .pending-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         width: 100%;
         min-height: 3rem;
         margin-top: 0.5rem;
@@ -123,6 +155,12 @@ import { SessionStore } from '../../state/session.store';
         font: inherit;
         font-weight: 700;
         cursor: pointer;
+        text-decoration: none;
+
+        &--link {
+          background: var(--success, #16a34a);
+          margin-bottom: 0.5rem;
+        }
       }
 
       .pending-button:disabled {
@@ -143,6 +181,66 @@ export class PendingAccessComponent {
   readonly session = inject(SessionStore);
   readonly loading = signal(false);
   readonly errorMessage = signal('');
+
+  readonly status = computed(() => this.session.currentUser()?.status ?? 'pending');
+
+  readonly statusIcon = computed(() => {
+    switch (this.status()) {
+      case 'rejected':
+        return '✕';
+      case 'disabled':
+        return '⊘';
+      case 'approved':
+        return '✓';
+      default:
+        return '⌛';
+    }
+  });
+
+  readonly statusTitle = computed(() => {
+    switch (this.status()) {
+      case 'rejected':
+        return 'Solicitud de acceso rechazada';
+      case 'disabled':
+        return 'Cuenta deshabilitada';
+      case 'approved':
+        return 'Cuenta aprobada';
+      default:
+        return 'Acceso pendiente de aprobación';
+    }
+  });
+
+  readonly statusDescription = computed(() => {
+    switch (this.status()) {
+      case 'rejected':
+        return 'no fue autorizada para acceder a los módulos internos del sistema.';
+      case 'disabled':
+        return 'ha sido deshabilitada por un administrador de la Fundación.';
+      case 'approved':
+        return 'ya cuenta con autorización activa para acceder al sistema.';
+      default:
+        return 'se encuentra registrada y pendiente de revisión por parte de un administrador de la Fundación.';
+    }
+  });
+
+  readonly statusNote = computed(() => {
+    switch (this.status()) {
+      case 'rejected':
+        return 'Si consideras que se trata de un error, comunícate con la administración de la Fundación Regalando Sonrisas.';
+      case 'disabled':
+        return 'El acceso a los módulos internos se encuentra suspendido. Contacta al administrador si requieres reactivar tu cuenta.';
+      default:
+        return 'Una vez que un administrador apruebe tu solicitud en el panel de gestión, podrás acceder a los módulos internos automáticamente.';
+    }
+  });
+
+  constructor() {
+    effect(() => {
+      if (this.session.isInitialized() && this.session.isApproved()) {
+        void this.router.navigate(['/dashboard']);
+      }
+    });
+  }
 
   async signOut(): Promise<void> {
     this.errorMessage.set('');
