@@ -9,8 +9,11 @@
     "test": "ng test",
     "lint": "ng lint",
     "emulators:start": "firebase emulators:start --project demo-regalando-sonrisas",
+    "admin:bootstrap": "npm --prefix functions run build && node functions/lib/bootstrap-admin.js",
+    "admin:bootstrap:emulator": "npm --prefix functions run build && node functions/lib/bootstrap-admin.js --emulator",
     "deploy": "firebase deploy",
-    "deploy:hosting": "firebase deploy --only hosting"
+    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy:rules": "firebase deploy --only firestore:rules,storage"
   },
   "private": true,
   "packageManager": "npm@11.19.1",

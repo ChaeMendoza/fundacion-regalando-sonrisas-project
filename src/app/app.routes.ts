@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './presentation/layout/main-layout/main-layout.component';
 import { authGuard } from './presentation/guards/auth.guard';
+import { roleGuard } from './presentation/guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -21,7 +22,7 @@ export const routes: Routes = [
       import('./presentation/pages/auth/pending-access.component').then(
         (m) => m.PendingAccessComponent,
       ),
-    title: 'Cuenta pendiente | Fundación Regalando Sonrisas',
+    title: 'Estado de cuenta | Fundación Regalando Sonrisas',
   },
   // Portal público institucional (Landing Page)
   {
@@ -94,6 +95,8 @@ export const routes: Routes = [
       },
       {
         path: 'admin',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
         loadComponent: () =>
           import('./presentation/pages/admin/admin.component').then((m) => m.AdminComponent),
         title: 'Administración y Seguridad | Fundación Regalando Sonrisas',

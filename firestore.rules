@@ -5,75 +5,126 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function userProfile(userId) {
+    function userProfilePath(userId) {
       return /databases/$(database)/documents/users/$(userId);
     }
 
-    function hasActiveProfile() {
+    function currentUserDoc() {
+      return get(userProfilePath(request.auth.uid));
+    }
+
+    function hasApprovedProfile() {
       return isAuthenticated()
-        && exists(userProfile(request.auth.uid))
-        && get(userProfile(request.auth.uid)).data.status == 'active'
-        && get(userProfile(request.auth.uid)).data.role in ['admin', 'volunteer', 'authorized_staff'];
+        && exists(userProfilePath(request.auth.uid))
+        && currentUserDoc().data.status in ['approved', 'active']
+        && currentUserDoc().data.role in ['admin', 'user', 'volunteer', 'authorized_staff'];
     }
 
     function isAdmin() {
-      return hasActiveProfile()
-        && get(userProfile(request.auth.uid)).data.role == 'admin';
+      return hasApprovedProfile()
+        && currentUserDoc().data.role == 'admin';
     }
 
+    function isValidUserStatus(status) {
+      return status in ['pending', 'approved', 'rejected', 'disabled'];
+    }
+
+    function isValidUserRole(role) {
+      return role in ['admin', 'user', 'volunteer', 'authorized_staff'];
+    }
+
+    // Denegación por defecto
     match /{document=**} {
       allow read, write: if false;
     }
 
+    // Configuración interna de inicialización (solo modificable mediante Firebase Admin SDK)
+    match /system_config/{configId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // Perfiles de usuarios y control de acceso
     match /users/{userId} {
+      // Cada usuario solo puede leer su propio documento; los administradores pueden leer todos
       allow read: if (isAuthenticated() && request.auth.uid == userId) || isAdmin();
+
+      // Registro inicial: el usuario solo puede crear su propio perfil en estado 'pending' y rol 'user'
       allow create: if isAuthenticated()
         && request.auth.uid == userId
         && request.resource.data.uid == userId
-        && request.resource.data.role == null
-        && request.resource.data.status == 'pending';
-      allow update: if isAdmin();
+        && request.resource.data.status == 'pending'
+        && request.resource.data.role == 'user'
+        && (!('approvedBy' in request.resource.data) || request.resource.data.approvedBy == null)
+        && (!('approvedAt' in request.resource.data) || request.resource.data.approvedAt == null);
+
+      // Actualización:
+      // 1) Administrador aprobado puede aprobar, rechazar, deshabilitar, reactivar o cambiar rol,
+      //    sin alterar el UID original ni auto-revocarse su propio rol/estado administrativo.
+      // 2) Usuario propietario solo puede actualizar datos básicos no privilegiados sin cambiar
+      //    su rol, estado, UID, email ni metadatos de aprobación.
+      allow update: if (
+          isAdmin()
+          && request.resource.data.uid == resource.data.uid
+          && isValidUserStatus(request.resource.data.status)
+          && isValidUserRole(request.resource.data.role)
+          && (
+            request.auth.uid != userId
+            || (request.resource.data.role == 'admin' && request.resource.data.status == 'approved')
+          )
+        ) || (
+          isAuthenticated()
+          && request.auth.uid == userId
+          && request.resource.data.uid == resource.data.uid
+          && request.resource.data.email == resource.data.email
+          && request.resource.data.role == resource.data.role
+          && request.resource.data.status == resource.data.status
+          && request.resource.data.get('approvedBy', null) == resource.data.get('approvedBy', null)
+          && request.resource.data.get('approvedAt', null) == resource.data.get('approvedAt', null)
+        );
+
       allow delete: if false;
     }
 
     match /beneficiaries/{beneficiaryId} {
-      allow read: if hasActiveProfile();
-      allow create: if hasActiveProfile() && request.resource.data.createdBy == request.auth.uid;
-      allow update: if hasActiveProfile() && request.resource.data.updatedBy == request.auth.uid;
+      allow read: if hasApprovedProfile();
+      allow create: if hasApprovedProfile() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if hasApprovedProfile() && request.resource.data.updatedBy == request.auth.uid;
       allow delete: if false;
     }
 
     match /donations/{donationId} {
-      allow read: if hasActiveProfile();
-      allow create: if hasActiveProfile() && request.resource.data.createdBy == request.auth.uid;
-      allow update: if hasActiveProfile() && request.resource.data.updatedBy == request.auth.uid;
+      allow read: if hasApprovedProfile();
+      allow create: if hasApprovedProfile() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if hasApprovedProfile() && request.resource.data.updatedBy == request.auth.uid;
       allow delete: if false;
     }
 
     match /volunteers/{volunteerId} {
-      allow read: if hasActiveProfile();
-      allow create: if hasActiveProfile() && request.resource.data.createdBy == request.auth.uid;
-      allow update: if hasActiveProfile() && request.resource.data.updatedBy == request.auth.uid;
+      allow read: if hasApprovedProfile();
+      allow create: if hasApprovedProfile() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if hasApprovedProfile() && request.resource.data.updatedBy == request.auth.uid;
       allow delete: if false;
     }
 
     match /activities/{activityId} {
-      allow read: if hasActiveProfile();
-      allow create: if hasActiveProfile() && request.resource.data.createdBy == request.auth.uid;
-      allow update: if hasActiveProfile() && request.resource.data.updatedBy == request.auth.uid;
+      allow read: if hasApprovedProfile();
+      allow create: if hasApprovedProfile() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if hasApprovedProfile() && request.resource.data.updatedBy == request.auth.uid;
       allow delete: if false;
     }
 
     match /documents/{documentId} {
-      allow read: if hasActiveProfile();
-      allow create: if hasActiveProfile() && request.resource.data.uploadedBy == request.auth.uid;
-      allow update: if hasActiveProfile() && request.resource.data.updatedBy == request.auth.uid;
+      allow read: if hasApprovedProfile();
+      allow create: if hasApprovedProfile() && request.resource.data.uploadedBy == request.auth.uid;
+      allow update: if hasApprovedProfile() && request.resource.data.updatedBy == request.auth.uid;
       allow delete: if false;
     }
 
+    // Bitácora administrativa de auditoría (inmutable; consulta exclusiva para administradores)
     match /audit_logs/{logId} {
-      allow read: if hasActiveProfile();
-      allow create: if hasActiveProfile() && request.resource.data.userId == request.auth.uid;
+      allow read: if isAdmin();
+      allow create: if hasApprovedProfile() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if false;
     }
   }

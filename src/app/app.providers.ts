@@ -7,6 +7,8 @@ import { LogoutUseCase } from './application/use-cases/auth/logout.use-case';
 import { ObserveSessionUseCase } from './application/use-cases/auth/observe-session.use-case';
 import { RegisterUseCase } from './application/use-cases/auth/register.use-case';
 import { SendPasswordResetEmailUseCase } from './application/use-cases/auth/send-password-reset-email.use-case';
+import { GetUsersUseCase } from './application/use-cases/users/get-users.use-case';
+import { ManageUserAccessUseCase } from './application/use-cases/users/manage-user-access.use-case';
 import { AuditLogRepository } from './domain/repositories/audit-log.repository';
 import { AuthRepository } from './domain/repositories/auth.repository';
 import { UserProfileRepository } from './domain/repositories/user-profile.repository';
@@ -57,5 +59,16 @@ export const APP_PROVIDERS: Provider[] = [
     provide: GetRecentAuditLogsUseCase,
     useFactory: (l: AuditLogRepository) => new GetRecentAuditLogsUseCase(l),
     deps: [AuditLogRepository],
+  },
+  {
+    provide: GetUsersUseCase,
+    useFactory: (u: UserProfileRepository, a: AuthRepository) => new GetUsersUseCase(u, a),
+    deps: [UserProfileRepository, AuthRepository],
+  },
+  {
+    provide: ManageUserAccessUseCase,
+    useFactory: (u: UserProfileRepository, a: AuthRepository, l: AuditLogRepository) =>
+      new ManageUserAccessUseCase(u, a, l),
+    deps: [UserProfileRepository, AuthRepository, AuditLogRepository],
   },
 ];

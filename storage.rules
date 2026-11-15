@@ -2,11 +2,11 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     
-    function hasActiveProfile() {
+    function hasApprovedProfile() {
       return request.auth != null
         && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
-        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.status == 'active'
-        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['admin', 'volunteer', 'authorized_staff'];
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.status in ['approved', 'active']
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['admin', 'user', 'volunteer', 'authorized_staff'];
     }
     
     function isValidSize() {
@@ -21,8 +21,8 @@ service firebase.storage {
 
     // Archivos organizados por módulos
     match /{moduleName}/{recordId}/{fileName} {
-      allow read: if hasActiveProfile();
-      allow write: if hasActiveProfile() && isValidSize();
+      allow read: if hasApprovedProfile();
+      allow write: if hasApprovedProfile() && isValidSize();
     }
   }
 }
