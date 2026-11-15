@@ -1,5 +1,11 @@
 import { Injectable, OnDestroy, computed, inject, signal } from '@angular/core';
-import { AppUser, UserRole } from '../../domain/entities/user.entity';
+import {
+  AppUser,
+  UserRole,
+  UserStatus,
+  isUserAdmin,
+  isUserApproved,
+} from '../../domain/entities/user.entity';
 import { LoginUseCase } from '../../application/use-cases/auth/login.use-case';
 import { LogoutUseCase } from '../../application/use-cases/auth/logout.use-case';
 import { RegisterUseCase } from '../../application/use-cases/auth/register.use-case';
@@ -59,7 +65,9 @@ export class SessionStore implements OnDestroy {
   readonly sessionStatus = this.authStatus.asReadonly();
   readonly sessionError = this.authError.asReadonly();
   readonly userRole = computed<UserRole | null>(() => this.user()?.role ?? null);
-  readonly isAdmin = computed(() => this.user()?.role === 'admin');
+  readonly userStatus = computed<UserStatus | null>(() => this.user()?.status ?? null);
+  readonly isApproved = computed(() => isUserApproved(this.user()));
+  readonly isAdmin = computed(() => isUserAdmin(this.user()));
 
   waitUntilInitialized(): Promise<AppUser | null> {
     return this.initialState;
