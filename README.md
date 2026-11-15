@@ -36,7 +36,28 @@ npm start
 
 La aplicación de desarrollo queda disponible en `http://localhost:4200`.
 
-La portada institucional permanece en `/`. El acceso al sistema está disponible en `/login` y el formulario de solicitud de cuenta en `/register`. El registro usa Firebase Authentication con correo y contraseña; las cuentas nuevas quedan pendientes y no reciben rol ni acceso a los módulos internos. El mecanismo institucional para aprobar cuentas y asignar roles todavía no está definido, por lo que este prototipo no habilita automáticamente el acceso tras registrarse o iniciar sesión.
+La portada institucional permanece en `/`. El acceso al sistema está disponible en `/login` y el formulario de solicitud de cuenta en `/register`. El registro usa Firebase Authentication con correo y contraseña; las cuentas nuevas crean un documento `users/{uid}` con estado `pending` y rol `user`, y permanecen en la pantalla `/pending` hasta que un administrador aprueba su solicitud desde `/admin`.
+
+## Inicialización del Primer Administrador (Bootstrap)
+
+Por seguridad, ninguna cuenta registrada desde el frontend recibe privilegios de administrador automáticamente, y las reglas de Firestore impiden que un usuario modifique su propio rol o estado. Para designar al primer administrador de forma idempotente mediante **Firebase Admin SDK**:
+
+### A) En entorno local (Emuladores de Firebase)
+1. Con los emuladores encendidos (`npm run emulators:start`), registra tu usuario desde `http://localhost:4200/register` (o define `INITIAL_ADMIN_PASSWORD` para que el script lo cree).
+2. Ejecuta:
+   ```bash
+   INITIAL_ADMIN_EMAIL="admin@fundacion.org" npm run admin:bootstrap:emulator
+   ```
+
+### B) En el proyecto real de Firebase (Producción / Nube)
+1. En **Firebase Console > Configuración del proyecto > Cuentas de servicio**, genera una nueva clave privada JSON y guárdala **fuera del repositorio** (ej. `~/credenciales/fir-chae-projects-adminsdk.json`).
+2. Registra primero tu cuenta en la aplicación (`/register`) y luego ejecuta en tu terminal:
+   ```bash
+   GOOGLE_APPLICATION_CREDENTIALS="/ruta/fuera/del/repo/fir-chae-projects-adminsdk.json" \
+   INITIAL_ADMIN_EMAIL="tu-correo@ejemplo.com" \
+   npm run admin:bootstrap
+   ```
+3. El procedimiento es **idempotente**: asigna el perfil `status: 'approved'` y `role: 'admin'` en Firestore, sincroniza los **Custom Claims** en Firebase Authentication, registra la operación en `audit_logs` y bloquea la creación accidental de múltiples administradores iniciales mediante `system_config/bootstrap`.
 
 ## Configuración de Firebase
 
