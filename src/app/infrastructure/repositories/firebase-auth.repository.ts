@@ -14,7 +14,10 @@ import {
   AuthStateListener,
   Unsubscribe,
 } from '../../domain/repositories/auth.repository';
-import { UserProfileRepository } from '../../domain/repositories/user-profile.repository';
+import {
+  UnsubscribeUserProfile,
+  UserProfileRepository,
+} from '../../domain/repositories/user-profile.repository';
 import { FirebaseAppService } from '../firebase/firebase-app.service';
 
 @Injectable({ providedIn: 'root' })
@@ -23,6 +26,7 @@ export class FirebaseAuthRepository extends AuthRepository {
   private readonly userProfiles = inject(UserProfileRepository);
   private readonly listeners = new Set<AuthStateListener>();
   private currentUser: AppUser | null = null;
+  private profileUnsubscribe: UnsubscribeUserProfile | null = null;
   private authStateVersion = 0;
   private initialStateResolved = false;
   private authStateError: Error | null = null;
@@ -62,6 +66,7 @@ export class FirebaseAuthRepository extends AuthRepository {
     const user = await this.resolveFirebaseUser(credential.user, version);
     if (this.firebaseAppService.auth.currentUser?.uid === user.uid) {
       this.setUser(user);
+      this.subscribeToProfileChanges(credential.user, version);
     }
   }
 
@@ -72,12 +77,15 @@ export class FirebaseAuthRepository extends AuthRepository {
       password,
     );
     await updateProfile(credential.user, { displayName });
-    const profile = this.toAppUser(credential.user);
+    const version = ++this.authStateVersion;
+    const profile = this.toAppUser(credential.user, displayName);
     const savedProfile = await this.createProfileIfMissing(profile);
     this.setUser(savedProfile);
+    this.subscribeToProfileChanges(credential.user, version);
   }
 
   async logout(): Promise<void> {
+    this.clearProfileSubscription();
     await signOut(this.firebaseAppService.auth);
   }
 
@@ -97,6 +105,7 @@ export class FirebaseAuthRepository extends AuthRepository {
 
   private setAuthError(error: Error): void {
     this.authStateVersion++;
+    this.clearProfileSubscription();
     this.currentUser = null;
     this.authStateError = error;
     if (!this.initialStateResolved) {
@@ -106,6 +115,50 @@ export class FirebaseAuthRepository extends AuthRepository {
     this.listeners.forEach((listener) => listener(null, error));
   }
 
+  private clearProfileSubscription(): void {
+    if (this.profileUnsubscribe) {
+      this.profileUnsubscribe();
+      this.profileUnsubscribe = null;
+    }
+  }
+
+  private subscribeToProfileChanges(fbUser: FirebaseUser, version: number): void {
+    this.clearProfileSubscription();
+    if (typeof this.userProfiles.observeById !== 'function') {
+      return;
+    }
+
+    this.profileUnsubscribe = this.userProfiles.observeById(
+      fbUser.uid,
+      (profile) => {
+        if (version !== this.authStateVersion || !profile) {
+          return;
+        }
+
+        const prevRole = this.currentUser?.role;
+        const prevStatus = this.currentUser?.status;
+
+        const sessionUser: AppUser = {
+          ...profile,
+          email: fbUser.email || profile.email,
+          displayName: profile.displayName || fbUser.displayName || 'Usuario Fundación',
+          photoUrl: fbUser.photoURL || profile.photoUrl,
+          phoneNumber: fbUser.phoneNumber || profile.phoneNumber,
+        };
+
+        if (prevRole !== sessionUser.role || prevStatus !== sessionUser.status) {
+          // Refresca el token JWT en caso de que también hayan cambiado los Custom Claims
+          void fbUser.getIdToken(true).catch(() => undefined);
+        }
+
+        this.setUser(sessionUser);
+      },
+      (err) => {
+        console.warn('Error al observar cambios en tiempo real del perfil de usuario:', err);
+      },
+    );
+  }
+
   private listenToFirebaseAuthState(): void {
     try {
       onAuthStateChanged(
@@ -113,8 +166,13 @@ export class FirebaseAuthRepository extends AuthRepository {
         (fbUser: FirebaseUser | null) => {
           const version = ++this.authStateVersion;
           if (fbUser) {
-            void this.resolveFirebaseUser(fbUser, version);
+            void this.resolveFirebaseUser(fbUser, version).then(() => {
+              if (version === this.authStateVersion) {
+                this.subscribeToProfileChanges(fbUser, version);
+              }
+            });
           } else {
+            this.clearProfileSubscription();
             this.setUser(null);
           }
         },
@@ -139,7 +197,7 @@ export class FirebaseAuthRepository extends AuthRepository {
       const sessionUser: AppUser = {
         ...profile,
         email: user.email || profile.email,
-        displayName: user.displayName || profile.displayName,
+        displayName: profile.displayName || user.displayName || 'Usuario Fundación',
         photoUrl: user.photoURL || profile.photoUrl,
         phoneNumber: user.phoneNumber || profile.phoneNumber,
       };
@@ -170,17 +228,24 @@ export class FirebaseAuthRepository extends AuthRepository {
     }
   }
 
-  private toAppUser(user: FirebaseUser): AppUser {
+  private toAppUser(user: FirebaseUser, overrideDisplayName?: string): AppUser {
+    const now = new Date().toISOString();
     return {
       uid: user.uid,
       email: user.email || '',
-      displayName: user.displayName || 'Usuario Fundación',
-      role: null,
+      displayName: overrideDisplayName || user.displayName || 'Usuario Fundación',
+      role: 'user',
       status: 'pending',
       photoUrl: user.photoURL || undefined,
       phoneNumber: user.phoneNumber || undefined,
-      createdAt: user.metadata.creationTime || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: user.metadata.creationTime
+        ? new Date(user.metadata.creationTime).toISOString()
+        : now,
+      updatedAt: now,
+      approvedAt: null,
+      approvedBy: null,
+      updatedBy: user.uid,
+      rejectionReason: null,
     };
   }
 }

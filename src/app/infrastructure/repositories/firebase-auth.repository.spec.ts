@@ -13,7 +13,10 @@ describe('FirebaseAuthRepository', () => {
           provide: UserProfileRepository,
           useValue: {
             findById: vi.fn().mockResolvedValue(null),
+            observeById: vi.fn().mockReturnValue(() => undefined),
             createPendingProfile: vi.fn().mockResolvedValue(undefined),
+            findAll: vi.fn().mockResolvedValue([]),
+            updateAccess: vi.fn(),
           },
         },
       ],
