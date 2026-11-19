@@ -1,4 +1,4 @@
-import { Component, computed, inject, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { SessionStore } from '../../state/session.store';
 
@@ -14,28 +14,58 @@ interface NavItem {
   standalone: true,
   imports: [RouterLink, RouterLinkActive],
   template: `
-    <nav class="sidebar-nav">
-      <a routerLink="/" class="sidebar-nav__brand" title="Volver al sitio público">
-        <div class="sidebar-nav__logo-wrap">
-          <img
-            src="images/logo-fundacion.jpg"
-            alt="Logo Fundación Regalando Sonrisas"
-            class="sidebar-nav__logo-img"
-          />
-        </div>
-        <div class="sidebar-nav__brand-info">
-          <span class="sidebar-nav__title">Regalando Sonrisas</span>
-          <span class="sidebar-nav__subtitle">Sistema de Gestión</span>
-        </div>
-      </a>
+    <nav class="sidebar-nav" [class.sidebar-nav--collapsed]="collapsed()">
+      <div class="sidebar-nav__header">
+        <a routerLink="/" class="sidebar-nav__brand" title="Volver al sitio público">
+          <div class="sidebar-nav__logo-wrap">
+            <img
+              src="images/logo-fundacion.jpg"
+              alt="Logo Fundación Regalando Sonrisas"
+              class="sidebar-nav__logo-img"
+            />
+          </div>
+          <div class="sidebar-nav__brand-info">
+            <span class="sidebar-nav__title">Regalando Sonrisas</span>
+            <span class="sidebar-nav__subtitle">Sistema de Gestión</span>
+          </div>
+        </a>
+
+        <button
+          type="button"
+          class="sidebar-nav__collapse-btn"
+          (click)="toggleCollapse()"
+          [attr.aria-label]="collapsed() ? 'Expandir menú lateral' : 'Colapsar menú lateral'"
+          [attr.aria-expanded]="!collapsed()"
+        >
+          <svg
+            class="sidebar-nav__collapse-icon"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            width="16"
+            height="16"
+            aria-hidden="true"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12.5 15 7.5 10l5-5" />
+          </svg>
+        </button>
+      </div>
 
       <ul class="sidebar-nav__list">
         @for (item of visibleNavItems(); track item.path) {
-          <li class="sidebar-nav__item">
+          <li
+            class="sidebar-nav__item"
+            [class.sidebar-nav__item--external]="item.path === '/'"
+          >
             <a
               [routerLink]="item.path"
               routerLinkActive="sidebar-nav__link--active"
+              [routerLinkActiveOptions]="{ exact: true }"
+              ariaCurrentWhenActive="page"
               class="sidebar-nav__link"
+              [class.sidebar-nav__link--external]="item.path === '/'"
+              [attr.data-tooltip]="item.label"
               (click)="onLinkClick()"
             >
               <span class="sidebar-nav__icon" aria-hidden="true" [innerHTML]="item.icon"></span>
@@ -57,30 +87,44 @@ interface NavItem {
         display: flex;
         flex-direction: column;
         height: 100%;
-        background: #0f172a; /* Slate 900 */
-        color: #f8fafc;
-        padding: 1.25rem 1rem;
+        padding: 1.25rem 0.875rem;
+        background: var(--sidebar-bg, #101b33);
+        color: var(--sidebar-text, #dbe3f5);
         user-select: none;
+        overflow-x: hidden;
+
+        &__header {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          min-height: 3rem;
+          padding-bottom: 1.25rem;
+          margin-bottom: 1.25rem;
+          border-bottom: 1px solid var(--sidebar-border, rgba(255, 255, 255, 0.1));
+        }
 
         &__brand {
           display: flex;
           align-items: center;
           gap: 0.75rem;
-          padding-bottom: 1.5rem;
-          border-bottom: 1px solid #1e293b;
-          margin-bottom: 1.25rem;
+          min-width: 0;
+          text-decoration: none;
         }
 
         &__logo-wrap {
-          width: 3rem;
-          height: 2.25rem;
-          background: #ffffff;
-          border-radius: 0.375rem;
-          padding: 0.125rem 0.25rem;
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+          width: 3rem;
+          height: 2.25rem;
+          padding: 0.125rem 0.25rem;
+          border-radius: 10px;
+          background: #ffffff;
+          transition:
+            width var(--sidebar-duration, 240ms) var(--sidebar-ease, ease),
+            height var(--sidebar-duration, 240ms) var(--sidebar-ease, ease);
         }
 
         &__logo-img {
@@ -92,79 +136,323 @@ interface NavItem {
         &__brand-info {
           display: flex;
           flex-direction: column;
+          min-width: 0;
+          max-width: 200px;
+          overflow: hidden;
+          transition:
+            opacity var(--sidebar-duration, 240ms) var(--sidebar-ease, ease),
+            max-width var(--sidebar-duration, 240ms) var(--sidebar-ease, ease);
         }
 
         &__title {
+          color: #ffffff;
           font-weight: 700;
           font-size: 0.9375rem;
           line-height: 1.2;
+          white-space: nowrap;
         }
 
         &__subtitle {
+          color: var(--sidebar-text-muted, #9aa8c6);
           font-size: 0.75rem;
-          color: #94a3b8;
+          white-space: nowrap;
+        }
+
+        &__collapse-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex: none;
+          width: 2rem;
+          height: 2rem;
+          border: 1px solid var(--sidebar-border, rgba(255, 255, 255, 0.1));
+          border-radius: 8px;
+          background: rgba(255, 255, 255, 0.06);
+          color: var(--sidebar-text-muted, #9aa8c6);
+          cursor: pointer;
+          transition:
+            background-color 0.2s var(--sidebar-ease, ease),
+            color 0.2s var(--sidebar-ease, ease);
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+          }
+
+          &:focus-visible {
+            outline: 2px solid var(--sidebar-focus, #9aa7e8);
+            outline-offset: 2px;
+          }
+        }
+
+        &__collapse-icon {
+          transition: transform var(--sidebar-duration, 240ms) var(--sidebar-ease, ease);
         }
 
         &__list {
-          list-style: none;
-          margin: 0;
-          padding: 0;
           display: flex;
+          flex: 1;
           flex-direction: column;
           gap: 0.25rem;
-          flex: 1;
+          padding: 0;
+          margin: 0;
+          list-style: none;
           overflow-y: auto;
+          overflow-x: hidden;
+        }
+
+        &__item {
+          position: relative;
+        }
+
+        &__item--external {
+          margin-top: 0.25rem;
+          padding-top: 0.75rem;
+          border-top: 1px solid var(--sidebar-border, rgba(255, 255, 255, 0.1));
         }
 
         &__link {
+          position: relative;
           display: flex;
           align-items: center;
           gap: 0.75rem;
+          min-height: 44px;
           padding: 0.625rem 0.875rem;
-          border-radius: 0.5rem;
-          color: #cbd5e1;
+          border-radius: var(--sidebar-radius, 12px);
+          color: var(--sidebar-text, #dbe3f5);
           font-size: 0.875rem;
           font-weight: 500;
           text-decoration: none;
           transition:
-            background-color 0.15s ease,
-            color 0.15s ease;
+            background-color 0.2s var(--sidebar-ease, ease),
+            color 0.2s var(--sidebar-ease, ease);
 
           &:hover {
-            background-color: #1e293b;
+            background: var(--sidebar-hover, rgba(255, 255, 255, 0.07));
             color: #ffffff;
           }
 
+          &:focus-visible {
+            outline: 2px solid var(--sidebar-focus, #9aa7e8);
+            outline-offset: 2px;
+          }
+
           &--active {
-            background-color: #0284c7;
-            color: #ffffff !important;
+            background: var(--sidebar-active, #2f4ba8);
+            color: #ffffff;
             font-weight: 600;
+
+            &::before {
+              content: '';
+              position: absolute;
+              left: 0;
+              top: 50%;
+              width: 3px;
+              height: 60%;
+              transform: translateY(-50%);
+              border-radius: 0 3px 3px 0;
+              background: var(--sidebar-indicator, #8dc63f);
+            }
+
+            &:hover {
+              background: var(--sidebar-active, #2f4ba8);
+            }
+          }
+
+          &--external {
+            border: 1px solid rgba(154, 167, 232, 0.3);
+            background: transparent;
+            color: var(--sidebar-accent-text, #c8d0f7);
+            font-weight: 600;
+
+            .sidebar-nav__icon::after {
+              content: '↗';
+              position: absolute;
+              top: -0.3rem;
+              right: -0.4rem;
+              color: var(--sidebar-accent, #9aa7e8);
+              font-size: 0.7rem;
+            }
+
+            &:hover {
+              background: rgba(154, 167, 232, 0.12);
+              color: #ffffff;
+            }
+
+            &.sidebar-nav__link--active {
+              background: transparent;
+              color: var(--sidebar-accent-text, #c8d0f7);
+
+              &::before {
+                display: none;
+              }
+            }
           }
         }
 
         &__icon {
+          position: relative;
           display: flex;
           align-items: center;
           justify-content: center;
+          flex: none;
           width: 1.25rem;
           height: 1.25rem;
         }
 
+        &__label {
+          max-width: 200px;
+          overflow: hidden;
+          white-space: nowrap;
+          transition:
+            opacity var(--sidebar-duration, 240ms) var(--sidebar-ease, ease),
+            max-width var(--sidebar-duration, 240ms) var(--sidebar-ease, ease);
+        }
+
         &__footer {
-          padding-top: 1rem;
-          border-top: 1px solid #1e293b;
           display: flex;
           align-items: center;
           gap: 0.5rem;
+          padding-top: 1rem;
+          border-top: 1px solid var(--sidebar-border, rgba(255, 255, 255, 0.1));
+          color: var(--sidebar-text-muted, #9aa8c6);
           font-size: 0.75rem;
-          color: #64748b;
         }
 
         &__status-dot {
+          flex: none;
           width: 0.5rem;
           height: 0.5rem;
           border-radius: 50%;
-          background-color: #22c55e;
+          background: var(--sidebar-indicator, #8dc63f);
+        }
+
+        &__status-text {
+          max-width: 200px;
+          overflow: hidden;
+          white-space: nowrap;
+          transition:
+            opacity var(--sidebar-duration, 240ms) var(--sidebar-ease, ease),
+            max-width var(--sidebar-duration, 240ms) var(--sidebar-ease, ease);
+        }
+
+        /* Estado colapsado: solo íconos + tooltips */
+        &--collapsed {
+          .sidebar-nav__header {
+            flex-direction: column;
+            gap: 0.6rem;
+          }
+
+          .sidebar-nav__brand {
+            justify-content: center;
+          }
+
+          .sidebar-nav__brand-info {
+            opacity: 0;
+            max-width: 0;
+          }
+
+          .sidebar-nav__collapse-icon {
+            transform: rotate(180deg);
+          }
+
+          .sidebar-nav__link {
+            justify-content: center;
+            gap: 0;
+            padding-inline: 0;
+          }
+
+          .sidebar-nav__label {
+            opacity: 0;
+            max-width: 0;
+          }
+
+          .sidebar-nav__footer {
+            justify-content: center;
+          }
+
+          .sidebar-nav__status-text {
+            opacity: 0;
+            max-width: 0;
+          }
+
+          .sidebar-nav__link::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: calc(100% + 10px);
+            top: 50%;
+            z-index: 100;
+            padding: 0.4rem 0.65rem;
+            border-radius: 8px;
+            background: #0b1224;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-50%) translateX(-4px);
+            transition:
+              opacity 0.18s var(--sidebar-ease, ease),
+              transform 0.18s var(--sidebar-ease, ease);
+          }
+
+          .sidebar-nav__link:hover::after,
+          .sidebar-nav__link:focus-visible::after {
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
+          }
+        }
+
+        /* En móvil el sidebar es un drawer siempre expandido */
+        @media (max-width: 1023px) {
+          .sidebar-nav__collapse-btn {
+            display: none;
+          }
+
+          .sidebar-nav--collapsed .sidebar-nav__header {
+            flex-direction: row;
+            gap: 0;
+          }
+
+          .sidebar-nav--collapsed .sidebar-nav__brand-info {
+            opacity: 1;
+            max-width: 200px;
+          }
+
+          .sidebar-nav--collapsed .sidebar-nav__link {
+            justify-content: flex-start;
+            gap: 0.75rem;
+            padding-inline: 0.875rem;
+          }
+
+          .sidebar-nav--collapsed .sidebar-nav__label {
+            opacity: 1;
+            max-width: 200px;
+          }
+
+          .sidebar-nav--collapsed .sidebar-nav__footer {
+            justify-content: flex-start;
+          }
+
+          .sidebar-nav--collapsed .sidebar-nav__status-text {
+            opacity: 1;
+            max-width: 200px;
+          }
+
+          .sidebar-nav--collapsed .sidebar-nav__link::after {
+            display: none;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          &,
+          *,
+          *::before,
+          *::after {
+            transition-duration: 0.01ms !important;
+          }
         }
       }
     `,
@@ -173,6 +461,8 @@ interface NavItem {
 export class SidebarComponent {
   private readonly session = inject(SessionStore);
   readonly linkClicked = output<void>();
+  readonly collapseToggled = output<void>();
+  readonly collapsed = input(false);
 
   readonly navItems: NavItem[] = [
     {
@@ -226,6 +516,10 @@ export class SidebarComponent {
   readonly visibleNavItems = computed(() =>
     this.navItems.filter((item) => !item.adminOnly || this.session.isAdmin()),
   );
+
+  toggleCollapse(): void {
+    this.collapseToggled.emit();
+  }
 
   onLinkClick(): void {
     this.linkClicked.emit();

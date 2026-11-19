@@ -1,4 +1,4 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, effect, HostListener, inject, signal } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { HeaderComponent } from '../header/header.component';
@@ -10,7 +10,7 @@ import { SessionStore } from '../../state/session.store';
   standalone: true,
   imports: [RouterOutlet, SidebarComponent, HeaderComponent, FooterComponent],
   template: `
-    <div class="layout">
+    <div class="layout" [class.layout--sidebar-collapsed]="isSidebarCollapsed()">
       <!-- Backdrop para móvil cuando el menú está abierto -->
       @if (isMobileMenuOpen()) {
         <div class="layout__backdrop" aria-hidden="true" (click)="closeMobileMenu()"></div>
@@ -18,7 +18,11 @@ import { SessionStore } from '../../state/session.store';
 
       <!-- Barra lateral (Sidebar) -->
       <aside class="layout__sidebar" [class.layout__sidebar--open]="isMobileMenuOpen()">
-        <app-sidebar (linkClicked)="closeMobileMenu()" />
+        <app-sidebar
+          [collapsed]="isSidebarCollapsed()"
+          (collapseToggled)="toggleSidebarCollapse()"
+          (linkClicked)="closeMobileMenu()"
+        />
       </aside>
 
       <!-- Contenedor Principal -->
@@ -36,10 +40,16 @@ import { SessionStore } from '../../state/session.store';
   styles: [
     `
       .layout {
+        --sidebar-current-width: var(--sidebar-width-expanded, 260px);
+
         display: flex;
         min-height: 100vh;
         background-color: var(--surface-bg, #f8fafc);
         position: relative;
+
+        &--sidebar-collapsed {
+          --sidebar-current-width: var(--sidebar-width-collapsed, 76px);
+        }
 
         &__backdrop {
           position: fixed;
@@ -58,15 +68,22 @@ import { SessionStore } from '../../state/session.store';
           top: 0;
           bottom: 0;
           left: 0;
-          width: var(--sidebar-width, 260px);
+          width: var(--sidebar-current-width);
           z-index: 50;
           transform: translateX(-100%);
-          transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          transition:
+            transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+            width var(--sidebar-duration, 240ms) var(--sidebar-ease, ease);
 
           @media (min-width: 1024px) {
             position: sticky;
             transform: translateX(0);
             height: 100vh;
+          }
+
+          /* En móvil el drawer siempre se muestra expandido */
+          @media (max-width: 1023px) {
+            width: var(--sidebar-width-expanded, 260px);
           }
 
           &--open {
@@ -92,6 +109,15 @@ import { SessionStore } from '../../state/session.store';
             padding: 2rem;
           }
         }
+
+        @media (prefers-reduced-motion: reduce) {
+          &,
+          *,
+          *::before,
+          *::after {
+            transition-duration: 0.01ms !important;
+          }
+        }
       }
     `,
   ],
@@ -99,7 +125,9 @@ import { SessionStore } from '../../state/session.store';
 export class MainLayoutComponent {
   private readonly session = inject(SessionStore);
   private readonly router = inject(Router);
+  private readonly collapsedStorageKey = 'frs-sidebar-collapsed';
   readonly isMobileMenuOpen = signal(false);
+  readonly isSidebarCollapsed = signal(this.readCollapsedPreference());
 
   constructor() {
     // Control reactivo de sesión activa: si un administrador deshabilita, rechaza
@@ -126,11 +154,37 @@ export class MainLayoutComponent {
     });
   }
 
+  @HostListener('document:keydown', ['$event'])
+  handleSidebarShortcut(event: KeyboardEvent): void {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'b') {
+      event.preventDefault();
+      this.toggleSidebarCollapse();
+    }
+  }
+
+  toggleSidebarCollapse(): void {
+    const next = !this.isSidebarCollapsed();
+    this.isSidebarCollapsed.set(next);
+    try {
+      localStorage.setItem(this.collapsedStorageKey, String(next));
+    } catch {
+      // Almacenamiento no disponible: el estado sigue funcionando en memoria.
+    }
+  }
+
   toggleMobileMenu(): void {
     this.isMobileMenuOpen.update((v) => !v);
   }
 
   closeMobileMenu(): void {
     this.isMobileMenuOpen.set(false);
+  }
+
+  private readCollapsedPreference(): boolean {
+    try {
+      return localStorage.getItem(this.collapsedStorageKey) === 'true';
+    } catch {
+      return false;
+    }
   }
 }
