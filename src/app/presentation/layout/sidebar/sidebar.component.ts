@@ -12,11 +12,13 @@ import {
   lucideBarChart3,
   lucideCalendarDays,
   lucideCircleHelp,
+  lucideClipboardList,
   lucideFolderOpen,
   lucideGlobe,
   lucideHandHeart,
   lucideLayoutDashboard,
   lucideSettings,
+  lucideUser,
   lucideUserCheck,
   lucideUsers,
 } from '@ng-icons/lucide';
@@ -31,8 +33,10 @@ const NAV_ICONS = {
   donations: 'lucideHandHeart',
   volunteers: 'lucideUserCheck',
   activities: 'lucideCalendarDays',
+  requests: 'lucideClipboardList',
   documents: 'lucideFolderOpen',
   reports: 'lucideBarChart3',
+  profile: 'lucideUser',
   admin: 'lucideSettings',
   fallback: 'lucideCircleHelp',
 } as const;
@@ -64,8 +68,10 @@ interface TooltipState {
       lucideHandHeart,
       lucideUserCheck,
       lucideCalendarDays,
+      lucideClipboardList,
       lucideFolderOpen,
       lucideBarChart3,
+      lucideUser,
       lucideSettings,
       lucideCircleHelp,
     }),
@@ -537,18 +543,20 @@ export class SidebarComponent {
   readonly linkClicked = output<void>();
   readonly collapseToggled = output<void>();
   readonly collapsed = input(false);
-  readonly versionLabel = 'Base Técnica v0.1.0';
+  readonly versionLabel = 'Versión Beta v1.0.0';
   readonly tooltip = signal<TooltipState | null>(null);
 
   readonly navItems: NavItem[] = [
     { path: '/dashboard', label: 'Inicio / Dashboard', icon: 'dashboard' },
     { path: '/', label: 'Portal Público Web', icon: 'public' },
     { path: '/beneficiaries', label: 'Beneficiarios', icon: 'beneficiaries' },
-    { path: '/donations', label: 'Donaciones', icon: 'donations' },
+    { path: '/donations', label: 'Donaciones y Donantes', icon: 'donations' },
     { path: '/volunteers', label: 'Voluntarios', icon: 'volunteers' },
     { path: '/activities', label: 'Actividades', icon: 'activities' },
+    { path: '/requests', label: 'Solicitudes', icon: 'requests' },
     { path: '/documents', label: 'Gestión Documental', icon: 'documents' },
     { path: '/reports', label: 'Reportes e Indicadores', icon: 'reports' },
+    { path: '/profile', label: 'Mi Perfil', icon: 'profile' },
     { path: '/admin', label: 'Administración', icon: 'admin', adminOnly: true },
   ];
 

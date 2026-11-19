@@ -1,16 +1,25 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import {
+  ActivitiesService,
+  BeneficiariesService,
+  DocumentsService,
+  DonationsService,
+  RequestsService,
+  VolunteersService,
+} from '../../../infrastructure/services/foundation-modules.service';
+import { AlertComponent } from '../../shared/components/alert/alert.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card.component';
-import { AlertComponent } from '../../shared/components/alert/alert.component';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
+import { getFirebaseErrorMessage } from '../../shared/utils/firebase-error-message';
 
 interface ModuleCard {
   title: string;
   description: string;
   route: string;
   scopeItems: string[];
-  status: 'base' | 'pending';
+  badge: string;
 }
 
 @Component({
@@ -27,43 +36,45 @@ interface ModuleCard {
     <app-page-header
       title="Panel de Control y Resumen"
       subtitle="Sistema de Gestión Integral — Fundación Regalando Sonrisas (Quito, Ecuador)"
-      badgeText="Fase 1: Base Técnica"
-      badgeType="info"
-    />
+      badgeText="Versión Beta"
+      badgeType="success"
+    >
+      <button type="button" class="btn btn--outline btn--sm" (click)="loadMetrics()">
+        &#8635; Actualizar resumen
+      </button>
+    </app-page-header>
 
-    <!-- Alerta Institucional de Arquitectura y Alcance -->
-    <app-alert type="info" title="Estado de la Base Técnica">
-      El sistema se encuentra en fase inicial de bootstrap. Los módulos funcionales están
-      estructurados de acuerdo con los requerimientos base. Las funcionalidades de expansión
-      (proyectos/programas, aliados y el proyecto <em>'Emprendiendo e Innovando Desde Casa'</em>) se
-      encuentran documentadas y reservadas para validación previa a su incremento.
-    </app-alert>
+    @if (errorMessage()) {
+      <app-alert type="warning" title="No se pudieron actualizar algunos indicadores">
+        {{ errorMessage() }}
+      </app-alert>
+    }
 
-    <!-- Indicadores Preliminares (Métricas Conceptuales) -->
+    <!-- Indicadores Operativos en Tiempo Real desde Firestore -->
     <section class="grid-stats" aria-label="Indicadores del sistema">
       <app-stat-card
         label="Beneficiarios"
-        value="0"
-        hint="Registro y seguimiento familiar"
-        tag="Alcance Base"
+        [value]="loading() ? '…' : beneficiariesCount()"
+        hint="Familias y personas registradas"
+        tag="Firestore"
       />
       <app-stat-card
         label="Donaciones"
-        value="0"
-        hint="Respaldo físico y digital"
-        tag="Alcance Base"
+        [value]="loading() ? '…' : donationsCount()"
+        [hint]="'Valor est.: ' + formattedDonationsValue()"
+        tag="Aportes"
       />
       <app-stat-card
         label="Voluntarios"
-        value="0"
-        hint="Participación y disponibilidad"
-        tag="Alcance Base"
+        [value]="loading() ? '…' : volunteersCount()"
+        hint="Equipo de voluntariado activo"
+        tag="Equipo"
       />
       <app-stat-card
         label="Actividades"
-        value="0"
-        hint="Eventos comunitarios y sociales"
-        tag="Alcance Base"
+        [value]="loading() ? '…' : activitiesCount()"
+        [hint]="requestsCount() + ' solicitudes · ' + documentsCount() + ' docs'"
+        tag="Operación"
       />
     </section>
 
@@ -71,8 +82,8 @@ interface ModuleCard {
     <section class="dashboard-modules">
       <h2 class="dashboard-modules__title">Módulos del Sistema de Gestión</h2>
       <p class="dashboard-modules__desc">
-        Centralización de información para eliminar dispersión documental, duplicados y falta de
-        trazabilidad.
+        Accede directamente a cada área operativa para registrar, consultar y dar seguimiento a la
+        gestión institucional.
       </p>
 
       <div class="grid-cards">
@@ -80,10 +91,7 @@ interface ModuleCard {
           <article class="card module-card">
             <div class="module-card__header">
               <h3 class="module-card__title">{{ card.title }}</h3>
-              <app-status-badge
-                [text]="card.status === 'base' ? 'Alcance Base' : 'Por Validar'"
-                [variant]="card.status === 'base' ? 'info' : 'warning'"
-              />
+              <app-status-badge [text]="card.badge" variant="success" />
             </div>
             <p class="module-card__description">{{ card.description }}</p>
             <ul class="module-card__items">
@@ -98,45 +106,6 @@ interface ModuleCard {
             </div>
           </article>
         }
-      </div>
-    </section>
-
-    <!-- Sección de Transparencia de Requerimientos y Pendientes -->
-    <section class="pending-section card">
-      <h3 class="pending-section__title">Gobernanza del Proyecto y Reglas de Desarrollo</h3>
-      <p class="pending-section__desc">
-        Conforme al marco del proyecto de titulación, este software se rige por las siguientes
-        pautas:
-      </p>
-      <div class="pending-grid">
-        <div class="pending-item">
-          <strong>Cero Invención de Datos:</strong>
-          <span
-            >No se inyectan registros ficticios haciéndolos pasar por datos reales de la
-            Fundación.</span
-          >
-        </div>
-        <div class="pending-item">
-          <strong>Límites del Alcance:</strong>
-          <span
-            >No se implementan módulos contables, facturación electrónica, nómina ni pasarelas de
-            pago.</span
-          >
-        </div>
-        <div class="pending-item">
-          <strong>Seguridad y Roles:</strong>
-          <span
-            >La distinción entre roles y permisos granulares de 'Personal Autorizado' se mantiene en
-            validación formal.</span
-          >
-        </div>
-        <div class="pending-item">
-          <strong>Trazabilidad Obligatoria:</strong>
-          <span
-            >Toda modificación requiere identificación del usuario autenticado y auditoría
-            inmutable.</span
-          >
-        </div>
       </div>
     </section>
   `,
@@ -201,54 +170,28 @@ interface ModuleCard {
           border-top: 1px solid var(--border-color);
         }
       }
-
-      .pending-section {
-        background: #fafaf9;
-        border-left: 4px solid var(--secondary);
-
-        &__title {
-          font-size: 1.125rem;
-          font-weight: 700;
-          margin: 0 0 0.5rem 0;
-          color: var(--text-primary);
-        }
-
-        &__desc {
-          font-size: 0.875rem;
-          color: var(--text-secondary);
-          margin: 0 0 1.25rem 0;
-        }
-      }
-
-      .pending-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 1rem;
-
-        @media (min-width: 640px) {
-          grid-template-columns: repeat(2, 1fr);
-        }
-      }
-
-      .pending-item {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-        font-size: 0.8125rem;
-
-        strong {
-          color: var(--text-primary);
-        }
-
-        span {
-          color: var(--text-secondary);
-          line-height: 1.4;
-        }
-      }
     `,
   ],
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
+  private readonly beneficiariesService = inject(BeneficiariesService);
+  private readonly donationsService = inject(DonationsService);
+  private readonly volunteersService = inject(VolunteersService);
+  private readonly activitiesService = inject(ActivitiesService);
+  private readonly requestsService = inject(RequestsService);
+  private readonly documentsService = inject(DocumentsService);
+
+  readonly loading = signal(true);
+  readonly errorMessage = signal('');
+
+  readonly beneficiariesCount = signal(0);
+  readonly donationsCount = signal(0);
+  readonly donationsTotalValue = signal(0);
+  readonly volunteersCount = signal(0);
+  readonly activitiesCount = signal(0);
+  readonly requestsCount = signal(0);
+  readonly documentsCount = signal(0);
+
   readonly modules: ModuleCard[] = [
     {
       title: 'Beneficiarios',
@@ -257,23 +200,23 @@ export class DashboardComponent {
       route: '/beneficiaries',
       scopeItems: [
         'Registro y datos de contacto',
-        'Información socioeconómica y grupo familiar',
+        'Ficha socioeconómica y vulnerabilidad',
         'Necesidades específicas y programas',
-        'Seguimiento, fechas de atención y fotografías',
+        'Seguimiento y archivo histórico',
       ],
-      status: 'base',
+      badge: 'Activo',
     },
     {
-      title: 'Donaciones',
-      description: 'Control de donaciones recibidas con respaldo físico y digital.',
+      title: 'Donaciones y Donantes',
+      description: 'Control de donaciones recibidas, donantes y comprobantes de respaldo.',
       route: '/donations',
       scopeItems: [
-        'Registro de donante y fecha',
-        'Tipo, cantidad y valor aproximado',
+        'Registro de donantes y aportaciones',
+        'Tipo, cantidad y valor estimado',
         'Destino y beneficiario asociado',
-        'Documentos de respaldo y comprobantes',
+        'Adjunto de comprobantes en Storage',
       ],
-      status: 'base',
+      badge: 'Activo',
     },
     {
       title: 'Voluntarios',
@@ -285,19 +228,19 @@ export class DashboardComponent {
         'Habilidades y contacto de emergencia',
         'Historial de participación en actividades',
       ],
-      status: 'base',
+      badge: 'Activo',
     },
     {
-      title: 'Actividades',
-      description: 'Coordinación y evidencia de eventos comunitarios, educativos y de entrega.',
+      title: 'Actividades y Solicitudes',
+      description: 'Coordinación de eventos comunitarios y atención de solicitudes de ayuda.',
       route: '/activities',
       scopeItems: [
-        'Actividades sociales, comunitarias y educativas',
-        'Entrega de donaciones y acompañamiento',
-        'Relación con beneficiarios y voluntarios',
-        'Evidencias fotográficas y documentos',
+        'Actividades sociales, educativas y entregas',
+        'Vinculación con voluntarios y beneficiarios',
+        'Seguimiento de solicitudes prioritarias',
+        'Control de estados y resultados',
       ],
-      status: 'base',
+      badge: 'Activo',
     },
     {
       title: 'Gestión Documental',
@@ -309,19 +252,62 @@ export class DashboardComponent {
         'Almacenamiento seguro en Cloud Storage',
         'Control de acceso y trazabilidad',
       ],
-      status: 'base',
+      badge: 'Activo',
     },
     {
       title: 'Reportes e Indicadores',
-      description: 'Métricas institucionales y generación de reportes periódicos.',
+      description: 'Métricas institucionales consolidadas y exportación de reportes.',
       route: '/reports',
       scopeItems: [
-        'Reportes de beneficiarios y ayudas',
-        'Estadísticas de donaciones y voluntarios',
-        'Exportación en PDF, Excel y CSV',
-        'Fórmulas de indicadores en validación',
+        'Consolidado real desde Firestore',
+        'Filtros por módulo y rango de fechas',
+        'Exportación en PDF, Excel (.xls) y CSV',
+        'Indicadores de cobertura e impacto',
       ],
-      status: 'base',
+      badge: 'Activo',
     },
   ];
+
+  ngOnInit(): void {
+    void this.loadMetrics();
+  }
+
+  formattedDonationsValue(): string {
+    return new Intl.NumberFormat('es-EC', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0,
+    }).format(this.donationsTotalValue());
+  }
+
+  async loadMetrics(): Promise<void> {
+    this.loading.set(true);
+    this.errorMessage.set('');
+    try {
+      const [bens, dons, vols, acts, reqs, docs] = await Promise.all([
+        this.beneficiariesService.list(),
+        this.donationsService.list(),
+        this.volunteersService.list(),
+        this.activitiesService.list(),
+        this.requestsService.list(),
+        this.documentsService.list(),
+      ]);
+
+      this.beneficiariesCount.set(bens.length);
+      this.donationsCount.set(dons.length);
+      this.donationsTotalValue.set(
+        dons.reduce((sum, d) => sum + (Number(d.estimatedValue) || 0), 0),
+      );
+      this.volunteersCount.set(vols.length);
+      this.activitiesCount.set(acts.length);
+      this.requestsCount.set(reqs.length);
+      this.documentsCount.set(docs.length);
+    } catch (error) {
+      this.errorMessage.set(
+        getFirebaseErrorMessage(error, 'Error al consultar las métricas en Firestore.'),
+      );
+    } finally {
+      this.loading.set(false);
+    }
+  }
 }

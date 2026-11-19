@@ -80,6 +80,14 @@ export const routes: Routes = [
         title: 'Actividades | Fundación Regalando Sonrisas',
       },
       {
+        path: 'requests',
+        loadComponent: () =>
+          import('./presentation/pages/requests/requests.component').then(
+            (m) => m.RequestsComponent,
+          ),
+        title: 'Solicitudes y Necesidades | Fundación Regalando Sonrisas',
+      },
+      {
         path: 'documents',
         loadComponent: () =>
           import('./presentation/pages/documents/documents.component').then(
@@ -92,6 +100,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./presentation/pages/reports/reports.component').then((m) => m.ReportsComponent),
         title: 'Reportes e Indicadores | Fundación Regalando Sonrisas',
+      },
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('./presentation/pages/profile/profile.component').then((m) => m.ProfileComponent),
+        title: 'Mi Perfil | Fundación Regalando Sonrisas',
       },
       {
         path: 'admin',

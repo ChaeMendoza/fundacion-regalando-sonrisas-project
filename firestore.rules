@@ -121,6 +121,20 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /donors/{donorId} {
+      allow read: if hasApprovedProfile();
+      allow create: if hasApprovedProfile() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if hasApprovedProfile() && request.resource.data.updatedBy == request.auth.uid;
+      allow delete: if false;
+    }
+
+    match /requests/{requestId} {
+      allow read: if hasApprovedProfile();
+      allow create: if hasApprovedProfile() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if hasApprovedProfile() && request.resource.data.updatedBy == request.auth.uid;
+      allow delete: if false;
+    }
+
     // Bitácora administrativa de auditoría (inmutable; consulta exclusiva para administradores)
     match /audit_logs/{logId} {
       allow read: if isAdmin();

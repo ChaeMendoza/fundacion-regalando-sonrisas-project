@@ -4,12 +4,14 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
 import { HeaderComponent } from '../header/header.component';
 import { FooterComponent } from '../footer/footer.component';
 import { SessionStore } from '../../state/session.store';
+import { ToastContainerComponent } from '../../shared/components/toast-container/toast-container.component';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterOutlet, SidebarComponent, HeaderComponent, FooterComponent],
+  imports: [RouterOutlet, SidebarComponent, HeaderComponent, FooterComponent, ToastContainerComponent],
   template: `
+    <app-toast-container />
     <div class="layout" [class.layout--sidebar-collapsed]="isSidebarCollapsed()">
       <!-- Backdrop para móvil cuando el menú está abierto -->
       @if (isMobileMenuOpen()) {

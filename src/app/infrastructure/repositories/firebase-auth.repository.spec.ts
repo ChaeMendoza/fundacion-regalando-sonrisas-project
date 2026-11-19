@@ -17,6 +17,7 @@ describe('FirebaseAuthRepository', () => {
             createPendingProfile: vi.fn().mockResolvedValue(undefined),
             findAll: vi.fn().mockResolvedValue([]),
             updateAccess: vi.fn(),
+            updateOwnProfile: vi.fn(),
           },
         },
       ],

@@ -11,6 +11,7 @@ import {
 import { AppUser, UserRole, UserStatus } from '../../domain/entities/user.entity';
 import {
   UnsubscribeUserProfile,
+  UpdateOwnProfileInput,
   UpdateUserAccessInput,
   UserProfileRepository,
 } from '../../domain/repositories/user-profile.repository';
@@ -110,6 +111,25 @@ export class FirestoreUserProfileRepository extends UserProfileRepository {
       approvedAt: input.approvedAt ?? null,
       approvedBy: input.approvedBy ?? null,
       rejectionReason: input.rejectionReason ?? null,
+    };
+
+    await updateDoc(ref, payload);
+
+    const updated = await this.findById(input.uid);
+    if (!updated) {
+      throw new Error(`No fue posible recuperar el perfil actualizado del usuario ${input.uid}.`);
+    }
+
+    return updated;
+  }
+
+  async updateOwnProfile(input: UpdateOwnProfileInput): Promise<AppUser> {
+    const ref = doc(this.firebaseAppService.firestore, 'users', input.uid);
+    const payload: Record<string, unknown> = {
+      displayName: input.displayName,
+      phoneNumber: input.phoneNumber ?? '',
+      updatedAt: input.updatedAt,
+      updatedBy: input.uid,
     };
 
     await updateDoc(ref, payload);

@@ -47,6 +47,13 @@ describe('ManageUserAccessUseCase', () => {
       observeById: vi.fn(() => () => undefined),
       createPendingProfile: vi.fn(async () => undefined),
       findAll: vi.fn(async () => Array.from(storedUsers.values())),
+      updateOwnProfile: vi.fn(async (input) => {
+        const existing = storedUsers.get(input.uid);
+        if (!existing) {
+          throw new Error('Not found');
+        }
+        return { ...existing, displayName: input.displayName, phoneNumber: input.phoneNumber };
+      }),
       updateAccess: vi.fn(async (input: UpdateUserAccessInput) => {
         const existing = storedUsers.get(input.uid);
         if (!existing) {

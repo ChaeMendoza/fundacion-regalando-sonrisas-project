@@ -53,7 +53,12 @@ import { IS_PRODUCTION } from '../../config/runtime-config.token';
         </span>
 
         <!-- Perfil de Usuario -->
-        <div class="app-header__user">
+        <a
+          routerLink="/profile"
+          class="app-header__user"
+          title="Ver y editar mi perfil"
+          aria-label="Ir a mi perfil de usuario"
+        >
           <div class="app-header__user-avatar">
             {{ userInitials() }}
           </div>
@@ -61,7 +66,7 @@ import { IS_PRODUCTION } from '../../config/runtime-config.token';
             <span class="app-header__user-name">{{ currentUser()?.displayName || 'Usuario' }}</span>
             <span class="app-header__user-role">{{ formatRole(currentUser()?.role) }}</span>
           </div>
-        </div>
+        </a>
 
         <button
           type="button"
@@ -170,6 +175,14 @@ import { IS_PRODUCTION } from '../../config/runtime-config.token';
           display: flex;
           align-items: center;
           gap: 0.625rem;
+          text-decoration: none;
+          padding: 0.25rem 0.5rem;
+          border-radius: 0.5rem;
+          transition: background-color 0.15s ease;
+
+          &:hover {
+            background-color: var(--surface-bg, #f8fafc);
+          }
         }
 
         &__user-avatar {

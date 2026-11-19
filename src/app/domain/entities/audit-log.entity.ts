@@ -14,7 +14,9 @@ export type AuditModule =
   | 'volunteers'
   | 'activities'
   | 'documents'
+  | 'requests'
   | 'reports'
+  | 'profile'
   | 'admin';
 
 export interface AuditLog {

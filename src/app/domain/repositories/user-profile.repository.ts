@@ -13,6 +13,13 @@ export interface UpdateUserAccessInput {
   rejectionReason?: string | null;
 }
 
+export interface UpdateOwnProfileInput {
+  uid: string;
+  displayName: string;
+  phoneNumber?: string;
+  updatedAt: string;
+}
+
 /** Contrato de lectura, creación inicial y administración de perfiles de usuario. */
 export abstract class UserProfileRepository {
   abstract findById(uid: string): Promise<AppUser | null>;
@@ -24,4 +31,5 @@ export abstract class UserProfileRepository {
   abstract createPendingProfile(profile: AppUser): Promise<void>;
   abstract findAll(): Promise<AppUser[]>;
   abstract updateAccess(input: UpdateUserAccessInput): Promise<AppUser>;
+  abstract updateOwnProfile(input: UpdateOwnProfileInput): Promise<AppUser>;
 }
