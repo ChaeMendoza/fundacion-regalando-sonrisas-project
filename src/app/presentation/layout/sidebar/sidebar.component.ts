@@ -1,18 +1,75 @@
-import { Component, computed, inject, input, output } from '@angular/core';
+import {
+  Component,
+  HostListener,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideBarChart3,
+  lucideCalendarDays,
+  lucideCircleHelp,
+  lucideFolderOpen,
+  lucideGlobe,
+  lucideHandHeart,
+  lucideLayoutDashboard,
+  lucideSettings,
+  lucideUserCheck,
+  lucideUsers,
+} from '@ng-icons/lucide';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { SessionStore } from '../../state/session.store';
+
+/** Nombres registrados en `provideIcons`. Ningún ítem puede quedar sin ícono. */
+const NAV_ICONS = {
+  dashboard: 'lucideLayoutDashboard',
+  public: 'lucideGlobe',
+  beneficiaries: 'lucideUsers',
+  donations: 'lucideHandHeart',
+  volunteers: 'lucideUserCheck',
+  activities: 'lucideCalendarDays',
+  documents: 'lucideFolderOpen',
+  reports: 'lucideBarChart3',
+  admin: 'lucideSettings',
+  fallback: 'lucideCircleHelp',
+} as const;
+
+type NavIconName = keyof typeof NAV_ICONS;
 
 interface NavItem {
   path: string;
   label: string;
-  icon: string;
+  icon: NavIconName;
   adminOnly?: boolean;
+}
+
+interface TooltipState {
+  text: string;
+  top: number;
+  left: number;
 }
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, NgIcon],
+  providers: [
+    provideIcons({
+      lucideLayoutDashboard,
+      lucideGlobe,
+      lucideUsers,
+      lucideHandHeart,
+      lucideUserCheck,
+      lucideCalendarDays,
+      lucideFolderOpen,
+      lucideBarChart3,
+      lucideSettings,
+      lucideCircleHelp,
+    }),
+  ],
   template: `
     <nav class="sidebar-nav" [class.sidebar-nav--collapsed]="collapsed()">
       <div class="sidebar-nav__header">
@@ -36,6 +93,10 @@ interface NavItem {
           (click)="toggleCollapse()"
           [attr.aria-label]="collapsed() ? 'Expandir menú lateral' : 'Colapsar menú lateral'"
           [attr.aria-expanded]="!collapsed()"
+          (mouseenter)="showTooltip($event, collapseTooltip())"
+          (mouseleave)="hideTooltip()"
+          (focus)="showTooltip($event, collapseTooltip())"
+          (blur)="hideTooltip()"
         >
           <svg
             class="sidebar-nav__collapse-icon"
@@ -43,8 +104,8 @@ interface NavItem {
             fill="none"
             stroke="currentColor"
             stroke-width="1.8"
-            width="16"
-            height="16"
+            width="18"
+            height="18"
             aria-hidden="true"
           >
             <path stroke-linecap="round" stroke-linejoin="round" d="M12.5 15 7.5 10l5-5" />
@@ -65,20 +126,43 @@ interface NavItem {
               ariaCurrentWhenActive="page"
               class="sidebar-nav__link"
               [class.sidebar-nav__link--external]="item.path === '/'"
+              [attr.aria-label]="item.label"
               [attr.data-tooltip]="item.label"
+              (mouseenter)="showTooltip($event, item.label)"
+              (mouseleave)="hideTooltip()"
+              (focus)="showTooltip($event, item.label)"
+              (blur)="hideTooltip()"
               (click)="onLinkClick()"
             >
-              <span class="sidebar-nav__icon" aria-hidden="true" [innerHTML]="item.icon"></span>
+              <span class="sidebar-nav__icon" aria-hidden="true">
+                <ng-icon [name]="iconFor(item)" size="18" strokeWidth="1.8" />
+              </span>
               <span class="sidebar-nav__label">{{ item.label }}</span>
             </a>
           </li>
         }
       </ul>
 
-      <div class="sidebar-nav__footer">
-        <span class="sidebar-nav__status-dot"></span>
-        <span class="sidebar-nav__status-text">Base Técnica v0.1.0</span>
+      <div
+        class="sidebar-nav__footer"
+        title="Base Técnica v0.1.0"
+        (mouseenter)="showTooltip($event, versionLabel)"
+        (mouseleave)="hideTooltip()"
+      >
+        <span class="sidebar-nav__status-dot" aria-hidden="true"></span>
+        <span class="sidebar-nav__status-text">{{ versionLabel }}</span>
       </div>
+
+      @if (tooltip(); as tip) {
+        <div
+          class="sidebar-nav__tooltip"
+          role="tooltip"
+          [style.top.px]="tip.top"
+          [style.left.px]="tip.left"
+        >
+          {{ tip.text }}
+        </div>
+      }
     </nav>
   `,
   styles: [
@@ -163,19 +247,19 @@ interface NavItem {
           align-items: center;
           justify-content: center;
           flex: none;
-          width: 2rem;
-          height: 2rem;
+          width: 2.75rem;
+          height: 2.75rem;
           border: 1px solid var(--sidebar-border, rgba(255, 255, 255, 0.1));
-          border-radius: 8px;
-          background: rgba(255, 255, 255, 0.06);
-          color: var(--sidebar-text-muted, #9aa8c6);
+          border-radius: 10px;
+          background: rgba(255, 255, 255, 0.08);
+          color: var(--sidebar-accent-text, #c8d0f7);
           cursor: pointer;
           transition:
             background-color 0.2s var(--sidebar-ease, ease),
             color 0.2s var(--sidebar-ease, ease);
 
           &:hover {
-            background: rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.16);
             color: #ffffff;
           }
 
@@ -298,6 +382,11 @@ interface NavItem {
           flex: none;
           width: 1.25rem;
           height: 1.25rem;
+
+          ng-icon {
+            display: block;
+            line-height: 1;
+          }
         }
 
         &__label {
@@ -334,6 +423,22 @@ interface NavItem {
           transition:
             opacity var(--sidebar-duration, 240ms) var(--sidebar-ease, ease),
             max-width var(--sidebar-duration, 240ms) var(--sidebar-ease, ease);
+        }
+
+        /* Tooltip único, fijo y fuera del contenedor con scroll */
+        &__tooltip {
+          position: fixed;
+          z-index: 100;
+          transform: translateY(-50%);
+          padding: 0.4rem 0.65rem;
+          border-radius: 8px;
+          background: #0b1224;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+          color: #ffffff;
+          font-size: 0.75rem;
+          font-weight: 600;
+          white-space: nowrap;
+          pointer-events: none;
         }
 
         /* Estado colapsado: solo íconos + tooltips */
@@ -375,39 +480,12 @@ interface NavItem {
             opacity: 0;
             max-width: 0;
           }
-
-          .sidebar-nav__link::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            left: calc(100% + 10px);
-            top: 50%;
-            z-index: 100;
-            padding: 0.4rem 0.65rem;
-            border-radius: 8px;
-            background: #0b1224;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
-            color: #ffffff;
-            font-size: 0.75rem;
-            font-weight: 600;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(-50%) translateX(-4px);
-            transition:
-              opacity 0.18s var(--sidebar-ease, ease),
-              transform 0.18s var(--sidebar-ease, ease);
-          }
-
-          .sidebar-nav__link:hover::after,
-          .sidebar-nav__link:focus-visible::after {
-            opacity: 1;
-            transform: translateY(-50%) translateX(0);
-          }
         }
 
         /* En móvil el sidebar es un drawer siempre expandido */
         @media (max-width: 1023px) {
-          .sidebar-nav__collapse-btn {
+          .sidebar-nav__collapse-btn,
+          .sidebar-nav__tooltip {
             display: none;
           }
 
@@ -440,10 +518,6 @@ interface NavItem {
             opacity: 1;
             max-width: 200px;
           }
-
-          .sidebar-nav--collapsed .sidebar-nav__link::after {
-            display: none;
-          }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -463,61 +537,58 @@ export class SidebarComponent {
   readonly linkClicked = output<void>();
   readonly collapseToggled = output<void>();
   readonly collapsed = input(false);
+  readonly versionLabel = 'Base Técnica v0.1.0';
+  readonly tooltip = signal<TooltipState | null>(null);
 
   readonly navItems: NavItem[] = [
-    {
-      path: '/dashboard',
-      label: 'Inicio / Dashboard',
-      icon: '<svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>',
-    },
-    {
-      path: '/',
-      label: 'Portal Público Web',
-      icon: '<svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v.183A5.99 5.99 0 0110 16c-.466 0-.92-.053-1.354-.154a1.5 1.5 0 01-.646-.846L7.5 13.5A1.5 1.5 0 006 12H4.5a2.5 2.5 0 01-.168-3.973z" clip-rule="evenodd"/></svg>',
-    },
-    {
-      path: '/beneficiaries',
-      label: 'Beneficiarios',
-      icon: '<svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>',
-    },
-    {
-      path: '/donations',
-      label: 'Donaciones',
-      icon: '<svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path fill-rule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1.12 1H9zm2 0h1.12A1 1 0 1011 5v1zM4 12h5v6H6a2 2 0 01-2-2v-4zm7 6h5a2 2 0 002-2v-4h-7v6z" clip-rule="evenodd"/></svg>',
-    },
-    {
-      path: '/volunteers',
-      label: 'Voluntarios',
-      icon: '<svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/></svg>',
-    },
-    {
-      path: '/activities',
-      label: 'Actividades',
-      icon: '<svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>',
-    },
-    {
-      path: '/documents',
-      label: 'Gestión Documental',
-      icon: '<svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/></svg>',
-    },
-    {
-      path: '/reports',
-      label: 'Reportes e Indicadores',
-      icon: '<svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>',
-    },
-    {
-      path: '/admin',
-      label: 'Administración',
-      adminOnly: true,
-      icon: '<svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>',
-    },
+    { path: '/dashboard', label: 'Inicio / Dashboard', icon: 'dashboard' },
+    { path: '/', label: 'Portal Público Web', icon: 'public' },
+    { path: '/beneficiaries', label: 'Beneficiarios', icon: 'beneficiaries' },
+    { path: '/donations', label: 'Donaciones', icon: 'donations' },
+    { path: '/volunteers', label: 'Voluntarios', icon: 'volunteers' },
+    { path: '/activities', label: 'Actividades', icon: 'activities' },
+    { path: '/documents', label: 'Gestión Documental', icon: 'documents' },
+    { path: '/reports', label: 'Reportes e Indicadores', icon: 'reports' },
+    { path: '/admin', label: 'Administración', icon: 'admin', adminOnly: true },
   ];
 
   readonly visibleNavItems = computed(() =>
     this.navItems.filter((item) => !item.adminOnly || this.session.isAdmin()),
   );
 
+  readonly collapseTooltip = computed(() =>
+    this.collapsed() ? 'Expandir menú lateral' : 'Colapsar menú lateral',
+  );
+
+  iconFor(item: NavItem): string {
+    return NAV_ICONS[item.icon] ?? NAV_ICONS.fallback;
+  }
+
+  showTooltip(event: Event, text: string): void {
+    const target = event.currentTarget;
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+    const rect = target.getBoundingClientRect();
+    this.tooltip.set({
+      text,
+      top: rect.top + rect.height / 2,
+      left: rect.right + 10,
+    });
+  }
+
+  hideTooltip(): void {
+    this.tooltip.set(null);
+  }
+
+  @HostListener('window:scroll')
+  @HostListener('window:resize')
+  onViewportChange(): void {
+    this.hideTooltip();
+  }
+
   toggleCollapse(): void {
+    this.hideTooltip();
     this.collapseToggled.emit();
   }
 

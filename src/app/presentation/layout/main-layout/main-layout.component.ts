@@ -77,17 +77,17 @@ import { SessionStore } from '../../state/session.store';
 
           @media (min-width: 1024px) {
             position: sticky;
-            transform: translateX(0);
+            transform: none;
             height: 100vh;
           }
 
           /* En móvil el drawer siempre se muestra expandido */
           @media (max-width: 1023px) {
             width: var(--sidebar-width-expanded, 260px);
-          }
 
-          &--open {
-            transform: translateX(0);
+            &--open {
+              transform: translateX(0);
+            }
           }
         }
 
