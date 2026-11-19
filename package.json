@@ -13,7 +13,9 @@
     "admin:bootstrap:emulator": "npm --prefix functions run build && node functions/lib/bootstrap-admin.js --emulator",
     "deploy": "firebase deploy",
     "deploy:hosting": "firebase deploy --only hosting",
-    "deploy:rules": "firebase deploy --only firestore:rules,storage"
+    "deploy:firestore-rules": "firebase deploy --only firestore:rules",
+    "deploy:storage-rules": "firebase deploy --only storage",
+    "deploy:rules": "npm run deploy:firestore-rules"
   },
   "private": true,
   "packageManager": "npm@11.19.1",

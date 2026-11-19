@@ -13,7 +13,8 @@ Las páginas y módulos de gestión muestran el flujo de referencia del sistema;
 - **Frontend:** Angular 22, componentes standalone y Signals.
 - **Lenguaje:** TypeScript.
 - **Estilos:** SCSS.
-- **Servicios Firebase disponibles en el proyecto:** Authentication, Cloud Firestore, Cloud Storage, Cloud Functions y Firebase Hosting.
+- **Servicios Firebase en uso actual (plan Spark):** Authentication, Cloud Firestore y Firebase Hosting.
+- **Servicios pendientes de habilitación institucional:** Cloud Storage (no inicializado mientras se define la facturación institucional) y despliegue en producción de Cloud Functions.
 - **Pruebas:** Vitest.
 - **Calidad:** ESLint con `angular-eslint` y Prettier.
 - **Backend:** Cloud Functions for Firebase en `functions/` (proyecto Node.js 20).
@@ -49,15 +50,34 @@ Por seguridad, ninguna cuenta registrada desde el frontend recibe privilegios de
    INITIAL_ADMIN_EMAIL="admin@fundacion.org" npm run admin:bootstrap:emulator
    ```
 
-### B) En el proyecto real de Firebase (Producción / Nube)
-1. En **Firebase Console > Configuración del proyecto > Cuentas de servicio**, genera una nueva clave privada JSON y guárdala **fuera del repositorio** (ej. `~/credenciales/fir-chae-projects-adminsdk.json`).
-2. Registra primero tu cuenta en la aplicación (`/register`) y luego ejecuta en tu terminal:
+### B) En el proyecto real de Firebase (`fir-chae-projects`, plan Spark)
+
+> Este procedimiento utiliza **exclusivamente Firebase Authentication y Cloud Firestore**; no requiere inicializar Firebase Storage ni activar facturación (plan Blaze).
+
+1. **Desplegar únicamente las reglas de Firestore** (sin intentar desplegar Storage):
+   ```bash
+   npx firebase use fir-chae-projects
+   npm run deploy:firestore-rules
+   ```
+   *(También puedes usar `npm run deploy:rules`, que actualmente delega en `deploy:firestore-rules` sin incluir Storage.)*
+2. En **Firebase Console > Configuración del proyecto > Cuentas de servicio**, genera una nueva clave privada JSON temporal y guárdala **fuera del repositorio** (ej. `~/credenciales/fir-chae-projects-adminsdk.json`). Nunca la versiones ni la copies dentro del proyecto.
+3. Registra primero tu cuenta en la aplicación (`/register`) para que exista en Firebase Authentication y luego ejecuta en tu terminal:
    ```bash
    GOOGLE_APPLICATION_CREDENTIALS="/ruta/fuera/del/repo/fir-chae-projects-adminsdk.json" \
    INITIAL_ADMIN_EMAIL="tu-correo@ejemplo.com" \
    npm run admin:bootstrap
    ```
-3. El procedimiento es **idempotente**: asigna el perfil `status: 'approved'` y `role: 'admin'` en Firestore, sincroniza los **Custom Claims** en Firebase Authentication, registra la operación en `audit_logs` y bloquea la creación accidental de múltiples administradores iniciales mediante `system_config/bootstrap`.
+4. El procedimiento es **idempotente**: valida que el usuario exista en Firebase Authentication antes de modificar Firestore, asigna el perfil `status: 'approved'` y `role: 'admin'` en `users/{uid}`, sincroniza los **Custom Claims** en Firebase Authentication, registra la operación en `audit_logs` y bloquea la creación accidental de múltiples administradores iniciales mediante `system_config/bootstrap`.
+5. **Revoca las credenciales temporales inmediatamente después del bootstrap:**
+   - Elimina el archivo JSON local de tu equipo:
+     ```bash
+     rm -f /ruta/fuera/del/repo/fir-chae-projects-adminsdk.json
+     ```
+   - En **Google Cloud Console > IAM y administración > Cuentas de servicio** (proyecto `fir-chae-projects`), selecciona la cuenta `firebase-adminsdk-...`, abre la pestaña **Claves** y elimina la clave privada generada para este proceso.
+   - Si en su lugar utilizaste Application Default Credentials (`gcloud auth application-default login`), revócalas con:
+     ```bash
+     gcloud auth application-default revoke
+     ```
 
 ## Configuración de Firebase
 
@@ -99,7 +119,12 @@ npm run emulators:start
 | `npm test` | Ejecuta las pruebas unitarias. |
 | `npm run lint` | Analiza el código Angular con ESLint. |
 | `npm run emulators:start` | Inicia los emuladores configurados en `firebase.json`. |
+| `npm run deploy:firestore-rules` | Publica exclusivamente `firestore.rules` en Firebase (sin desplegar Storage). |
+| `npm run deploy:rules` | Alias seguro que ejecuta `deploy:firestore-rules` mientras Storage no esté habilitado. |
+| `npm run deploy:storage-rules` | Publica `storage.rules` de forma independiente (para cuando Storage esté habilitado). |
 | `npm run deploy:hosting` | Despliega Hosting con Firebase CLI, una vez configurado el proyecto destino. |
+| `npm run admin:bootstrap` | Asigna el primer administrador en Authentication y Firestore (requiere credenciales locales temporales). |
+| `npm run admin:bootstrap:emulator` | Ejecuta el bootstrap del primer administrador contra los emuladores locales. |
 | `npm --prefix functions run build` | Compila el backend de Cloud Functions. |
 
 ## Arquitectura
@@ -142,7 +167,8 @@ El detalle de las capas y los contratos está en [`docs/architecture.md`](docs/a
 - Las páginas de dashboard, beneficiarios, donaciones, voluntarios, actividades, documentos, reportes y administración son parte de la interfaz del prototipo. Su presencia no implica que exista persistencia completa o flujos CRUD integrados.
 - El login y el registro usan Firebase Authentication y crean/consultan perfiles en `users`. Las cuentas nuevas quedan pendientes, sin rol; el sistema no tiene todavía un flujo institucional para aprobarlas o asignar roles.
 - Existen adaptadores para Firebase y casos de uso de autenticación y auditoría; no todos los servicios están conectados a páginas o flujos de usuario.
-- Las rutas internas requieren una sesión con perfil `active` y rol asignado. Firestore y Storage aplican el mismo requisito; las cuentas sin aprobación se dirigen a la página de acceso pendiente.
+- Las rutas internas requieren una sesión con perfil `approved` y rol asignado. Firestore aplica el mismo requisito a nivel de servidor; las cuentas sin aprobación se dirigen a la página de acceso pendiente.
+- **Firebase Storage** permanece como funcionalidad **pendiente de habilitación institucional** (junto con la definición de plan y facturación por parte de la fundación); el proyecto opera actualmente en el plan Spark con Firebase Authentication y Cloud Firestore.
 - Cloud Functions contiene `healthCheck` y una callable `logAuditEvent`; su presencia no significa que la aplicación cliente delegue actualmente toda la auditoría al backend.
 - La estructura Firestore, reglas y funcionalidades de negocio pendientes requieren validación formal antes de considerarse requisitos implementados.
 - Las definiciones de roles, campos obligatorios y reglas institucionales continúan sujetas a validación.
