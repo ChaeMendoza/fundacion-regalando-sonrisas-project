@@ -2,18 +2,21 @@ import { Injectable, inject } from '@angular/core';
 import {
   User as FirebaseUser,
   createUserWithEmailAndPassword,
+  deleteUser,
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
 } from 'firebase/auth';
+import { LegalAcceptanceVersions } from '../../domain/entities/legal-document.entity';
 import { AppUser } from '../../domain/entities/user.entity';
 import {
   AuthRepository,
   AuthStateListener,
   Unsubscribe,
 } from '../../domain/repositories/auth.repository';
+import { LegalAcceptanceRepository } from '../../domain/repositories/legal-acceptance.repository';
 import {
   UnsubscribeUserProfile,
   UserProfileRepository,
@@ -24,6 +27,7 @@ import { FirebaseAppService } from '../firebase/firebase-app.service';
 export class FirebaseAuthRepository extends AuthRepository {
   private readonly firebaseAppService = inject(FirebaseAppService);
   private readonly userProfiles = inject(UserProfileRepository);
+  private readonly legalAcceptances = inject(LegalAcceptanceRepository);
   private readonly listeners = new Set<AuthStateListener>();
   private currentUser: AppUser | null = null;
   private profileUnsubscribe: UnsubscribeUserProfile | null = null;
@@ -70,18 +74,38 @@ export class FirebaseAuthRepository extends AuthRepository {
     }
   }
 
-  async register(displayName: string, email: string, password: string): Promise<void> {
+  async register(
+    displayName: string,
+    email: string,
+    password: string,
+    legal: LegalAcceptanceVersions,
+  ): Promise<void> {
     const credential = await createUserWithEmailAndPassword(
       this.firebaseAppService.auth,
       email,
       password,
     );
-    await updateProfile(credential.user, { displayName });
-    const version = ++this.authStateVersion;
-    const profile = this.toAppUser(credential.user, displayName);
-    const savedProfile = await this.createProfileIfMissing(profile);
-    this.setUser(savedProfile);
-    this.subscribeToProfileChanges(credential.user, version);
+
+    try {
+      // La evidencia se crea ANTES del perfil: si falla, no se completa el registro.
+      await this.legalAcceptances.create({
+        uid: credential.user.uid,
+        termsVersion: legal.termsVersion,
+        privacyVersion: legal.privacyVersion,
+        termsAccepted: true,
+        privacyInformationAcknowledged: true,
+      });
+      await updateProfile(credential.user, { displayName });
+      const version = ++this.authStateVersion;
+      const profile = this.toAppUser(credential.user, displayName);
+      const savedProfile = await this.createProfileIfMissing(profile);
+      this.setUser(savedProfile);
+      this.subscribeToProfileChanges(credential.user, version);
+    } catch (error) {
+      // Evita dejar una cuenta de Authentication huérfana, sin evidencias y sin perfil.
+      await deleteUser(credential.user).catch(() => undefined);
+      throw error;
+    }
   }
 
   async logout(): Promise<void> {
@@ -216,6 +240,13 @@ export class FirebaseAuthRepository extends AuthRepository {
   }
 
   private async createProfileIfMissing(profile: AppUser): Promise<AppUser> {
+    // Ninguna cuenta creada fuera del formulario de registro debe obtener un
+    // perfil automáticamente sin las evidencias de aceptación correspondientes.
+    const hasAcceptance = await this.legalAcceptances.hasCurrentAcceptance(profile.uid);
+    if (!hasAcceptance) {
+      return profile;
+    }
+
     try {
       await this.userProfiles.createPendingProfile(profile);
       return profile;

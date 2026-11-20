@@ -7,6 +7,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { LegalAcceptanceRequiredError } from '../../../application/use-cases/auth/register.use-case';
 import { SessionStore } from '../../state/session.store';
 import { getAuthErrorMessage } from './auth-error-message';
 
@@ -79,9 +80,67 @@ function containsNonWhitespace(control: AbstractControl): ValidationErrors | nul
             <span class="field-error">La contraseña debe tener al menos 6 caracteres.</span>
           }
 
+          <fieldset class="acceptance-group">
+            <legend class="acceptance-legend">Aceptaciones obligatorias *</legend>
+
+            <label class="acceptance-option" for="termsAccepted">
+              <input
+                id="termsAccepted"
+                type="checkbox"
+                formControlName="termsAccepted"
+                [attr.aria-invalid]="
+                  form.controls.termsAccepted.invalid && form.controls.termsAccepted.touched
+                "
+              />
+              <span
+                >He leído y acepto los
+                <a
+                  routerLink="/terminos-y-condiciones"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >Términos y Condiciones de Uso</a
+                >.</span
+              >
+            </label>
+            @if (form.controls.termsAccepted.invalid && form.controls.termsAccepted.touched) {
+              <span class="field-error">Debe aceptar los Términos y Condiciones de Uso.</span>
+            }
+
+            <label class="acceptance-option" for="privacyAccepted">
+              <input
+                id="privacyAccepted"
+                type="checkbox"
+                formControlName="privacyAccepted"
+                [attr.aria-invalid]="
+                  form.controls.privacyAccepted.invalid && form.controls.privacyAccepted.touched
+                "
+              />
+              <span
+                >He leído la
+                <a
+                  routerLink="/politica-de-privacidad"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >Política de Privacidad y Tratamiento de Datos Personales</a
+                >
+                y he sido informado sobre el tratamiento de mis datos personales.</span
+              >
+            </label>
+            @if (form.controls.privacyAccepted.invalid && form.controls.privacyAccepted.touched) {
+              <span class="field-error"
+                >Debe confirmar que ha leído la Política de Privacidad y Tratamiento de Datos
+                Personales.</span
+              >
+            }
+
+            @if (acceptanceError()) {
+              <p class="acceptance-error" role="alert">{{ acceptanceError() }}</p>
+            }
+          </fieldset>
+
           <p class="auth-note">
-            El registro no asigna un rol ni habilita el acceso al sistema. La aprobación está
-            pendiente de revisión.
+            Ambas casillas son obligatorias para completar el registro. El registro no asigna un rol
+            ni habilita el acceso al sistema. La aprobación está pendiente de revisión.
           </p>
 
           <button type="submit" class="auth-submit" [disabled]="loading()">
@@ -193,6 +252,55 @@ function containsNonWhitespace(control: AbstractControl): ValidationErrors | nul
         font-size: 0.82rem;
       }
 
+      .acceptance-group {
+        display: grid;
+        gap: 0.4rem;
+        margin: 1rem 0 0;
+        padding: 0.9rem;
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: 0.5rem;
+      }
+
+      .acceptance-legend {
+        padding: 0 0.35rem;
+        color: var(--text-secondary, #475569);
+        font-size: 0.82rem;
+        font-weight: 700;
+      }
+
+      .acceptance-option {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+        margin-top: 0.35rem;
+        font-size: 0.85rem;
+        font-weight: 400;
+        line-height: 1.45;
+        cursor: pointer;
+      }
+
+      .acceptance-option input[type='checkbox'] {
+        width: 1.05rem;
+        min-height: auto;
+        margin: 0.1rem 0 0;
+        flex: none;
+        accent-color: var(--primary, #0284c7);
+        cursor: pointer;
+      }
+
+      .acceptance-option a {
+        color: var(--primary, #0284c7);
+        font-weight: 700;
+        text-decoration: underline;
+      }
+
+      .acceptance-error {
+        margin: 0.35rem 0 0;
+        color: var(--danger, #dc2626);
+        font-size: 0.85rem;
+        font-weight: 700;
+      }
+
       .auth-note {
         margin: 0.8rem 0 0;
         padding: 0.75rem;
@@ -255,26 +363,47 @@ export class RegisterComponent {
 
   readonly loading = signal(false);
   readonly errorMessage = signal('');
+  readonly acceptanceError = signal('');
   readonly form = this.formBuilder.nonNullable.group({
     displayName: ['', [Validators.required, containsNonWhitespace]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
+    termsAccepted: [false, [Validators.requiredTrue]],
+    privacyAccepted: [false, [Validators.requiredTrue]],
   });
 
   async submit(): Promise<void> {
     this.errorMessage.set('');
+    this.acceptanceError.set('');
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      if (
+        this.form.controls.termsAccepted.invalid ||
+        this.form.controls.privacyAccepted.invalid
+      ) {
+        this.acceptanceError.set(
+          'Debe aceptar los Términos y Condiciones de Uso y confirmar que ha leído la Política de Privacidad y Tratamiento de Datos Personales para continuar.',
+        );
+      }
       return;
     }
 
     this.loading.set(true);
     try {
-      const { displayName, email, password } = this.form.getRawValue();
-      await this.session.register(displayName.trim(), email.trim(), password);
+      const { displayName, email, password, termsAccepted, privacyAccepted } =
+        this.form.getRawValue();
+      await this.session.register(displayName.trim(), email.trim(), password, {
+        termsAccepted,
+        privacyInformationAcknowledged: privacyAccepted,
+      });
       await this.router.navigate(['/pending']);
     } catch (error) {
-      this.errorMessage.set(getAuthErrorMessage(error));
+      if (error instanceof LegalAcceptanceRequiredError) {
+        this.acceptanceError.set(error.message);
+      } else {
+        this.errorMessage.set(getAuthErrorMessage(error));
+      }
     } finally {
       this.loading.set(false);
     }

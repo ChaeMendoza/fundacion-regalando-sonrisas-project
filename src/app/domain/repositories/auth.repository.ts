@@ -1,3 +1,4 @@
+import { LegalAcceptanceVersions } from '../entities/legal-document.entity';
 import { AppUser } from '../entities/user.entity';
 
 export type AuthStateListener = (user: AppUser | null, error?: Error) => void;
@@ -10,7 +11,12 @@ export abstract class AuthRepository {
   /** Notifica el estado inicial de Firebase y cada cambio posterior de sesión. */
   abstract observeAuthState(listener: AuthStateListener): Unsubscribe;
   abstract login(email: string, password: string): Promise<void>;
-  abstract register(displayName: string, email: string, password: string): Promise<void>;
+  abstract register(
+    displayName: string,
+    email: string,
+    password: string,
+    legal: LegalAcceptanceVersions,
+  ): Promise<void>;
   abstract logout(): Promise<void>;
   abstract sendPasswordResetEmail(email: string): Promise<void>;
 }

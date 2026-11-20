@@ -1,4 +1,5 @@
 import { Injectable, OnDestroy, computed, inject, signal } from '@angular/core';
+import { LegalAcceptanceConfirmation } from '../../domain/entities/legal-document.entity';
 import {
   AppUser,
   UserRole,
@@ -79,8 +80,13 @@ export class SessionStore implements OnDestroy {
     return this.loginUseCase.execute(email, password);
   }
 
-  register(displayName: string, email: string, password: string): Promise<void> {
-    return this.registerUseCase.execute(displayName, email, password);
+  register(
+    displayName: string,
+    email: string,
+    password: string,
+    confirmation: LegalAcceptanceConfirmation,
+  ): Promise<void> {
+    return this.registerUseCase.execute(displayName, email, password, confirmation);
   }
 
   logout(): Promise<void> {

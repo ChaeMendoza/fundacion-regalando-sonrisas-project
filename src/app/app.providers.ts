@@ -11,12 +11,14 @@ import { GetUsersUseCase } from './application/use-cases/users/get-users.use-cas
 import { ManageUserAccessUseCase } from './application/use-cases/users/manage-user-access.use-case';
 import { AuditLogRepository } from './domain/repositories/audit-log.repository';
 import { AuthRepository } from './domain/repositories/auth.repository';
+import { LegalAcceptanceRepository } from './domain/repositories/legal-acceptance.repository';
 import { UserAccessClaimsRepository } from './domain/repositories/user-access-claims.repository';
 import { UserProfileRepository } from './domain/repositories/user-profile.repository';
 import { IS_PRODUCTION } from './presentation/config/runtime-config.token';
 import { FirebaseAuthRepository } from './infrastructure/repositories/firebase-auth.repository';
 import { FirebaseFunctionsUserAccessClaimsRepository } from './infrastructure/repositories/firebase-functions-user-access-claims.repository';
 import { FirestoreAuditLogRepository } from './infrastructure/repositories/firestore-audit-log.repository';
+import { FirestoreLegalAcceptanceRepository } from './infrastructure/repositories/firestore-legal-acceptance.repository';
 import { FirestoreUserProfileRepository } from './infrastructure/repositories/firestore-user-profile.repository';
 
 /** Raíz de composición: enlaza contratos con implementaciones y construye los casos de uso. */
@@ -25,6 +27,7 @@ export const APP_PROVIDERS: Provider[] = [
 
   { provide: AuthRepository, useExisting: FirebaseAuthRepository },
   { provide: AuditLogRepository, useExisting: FirestoreAuditLogRepository },
+  { provide: LegalAcceptanceRepository, useExisting: FirestoreLegalAcceptanceRepository },
   { provide: UserProfileRepository, useExisting: FirestoreUserProfileRepository },
   {
     provide: UserAccessClaimsRepository,

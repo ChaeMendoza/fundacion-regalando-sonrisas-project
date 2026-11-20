@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { AppUser } from '../../domain/entities/user.entity';
+import { LegalAcceptanceRepository } from '../../domain/repositories/legal-acceptance.repository';
 import { UserProfileRepository } from '../../domain/repositories/user-profile.repository';
 import { FirebaseAuthRepository } from './firebase-auth.repository';
 
@@ -9,6 +10,13 @@ describe('FirebaseAuthRepository', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        {
+          provide: LegalAcceptanceRepository,
+          useValue: {
+            create: vi.fn().mockResolvedValue(undefined),
+            hasCurrentAcceptance: vi.fn().mockResolvedValue(true),
+          },
+        },
         {
           provide: UserProfileRepository,
           useValue: {
