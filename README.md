@@ -37,7 +37,7 @@ npm start
 
 La aplicación de desarrollo queda disponible en `http://localhost:4200`.
 
-La portada institucional permanece en `/`. El acceso al sistema está disponible en `/login` y el formulario de solicitud de cuenta en `/register`. El registro usa Firebase Authentication con correo y contraseña; las cuentas nuevas crean un documento `users/{uid}` con estado `pending` y rol `user`, y permanecen en la pantalla `/pending` hasta que un administrador aprueba su solicitud desde `/admin`.
+La portada institucional permanece en `/`. El acceso al sistema está disponible en `/login` y el formulario de solicitud de cuenta en `/register`. El registro usa Firebase Authentication con correo y contraseña; las cuentas nuevas crean un documento `users/{uid}` con estado `pending` y rol `user`, y permanecen en la pantalla `/pending` hasta que un administrador aprueba su solicitud desde `/admin`. El entorno de desarrollo está conectado a los emuladores por defecto, por lo que necesitas `npm run emulators:start` en otra terminal antes de registrar cuentas locales.
 
 ## Inicialización del Primer Administrador (Bootstrap)
 
@@ -91,7 +91,7 @@ En una terminal inicia los emuladores y, en otra, ejecuta `npm start`. La aplica
 
 Para validar localmente contra el proyecto Firebase real sin editar archivos, usa `npx ng serve --configuration=production`. Esta opción usa los servicios reales: no la uses para crear cuentas de prueba ni modificar datos sin autorización. Habilita **Email/Password** y **Email Enumeration Protection** en Authentication. Añade `localhost` y los dominios reales de Hosting (por ejemplo, `fir-chae-projects.web.app` y `fir-chae-projects.firebaseapp.com`) a los dominios autorizados. Un dominio personalizado debe añadirse también en Firebase Console.
 
-El despliegue de Hosting continúa usando la configuración SPA existente en `firebase.json`. Antes de desplegar, configura el proyecto destino con Firebase CLI/CI y compila con `npm run build`; este repositorio no contiene un alias `.firebaserc` para evitar seleccionar implícitamente un proyecto de despliegue.
+El despliegue de Hosting usa la configuración SPA de `firebase.json`, cuyo `predeploy` ejecuta `npm run build:production`. El proyecto destino queda fijado en `.firebaserc` como `fir-chae-projects`; no es necesario seleccionarlo interactivamente. Antes de publicar la beta, revisa la guía completa en [`docs/production-deployment.md`](docs/production-deployment.md), especialmente los dominios autorizados y las restricciones de la API key web.
 
 Los emuladores definidos por `firebase.json` usan estos puertos:
 
@@ -104,7 +104,7 @@ Los emuladores definidos por `firebase.json` usan estos puertos:
 | Hosting | `localhost:5000` |
 | Emulator UI | `localhost:4000` |
 
-Para conectarse a ellos, habilita `useEmulators` en `src/environments/environment.ts` y ejecuta:
+`src/environments/environment.ts` ya tiene `useEmulators: true` para desarrollo. Para iniciarlos, ejecuta:
 
 ```bash
 npm run emulators:start
@@ -123,7 +123,7 @@ npm run emulators:start
 | `npm run deploy:firestore-rules` | Publica exclusivamente `firestore.rules` en Firebase (sin desplegar Storage). |
 | `npm run deploy:rules` | Alias seguro que ejecuta `deploy:firestore-rules` mientras Storage no esté habilitado. |
 | `npm run deploy:storage-rules` | Publica `storage.rules` de forma independiente (para cuando Storage esté habilitado). |
-| `npm run deploy:hosting` | Despliega Hosting con Firebase CLI, una vez configurado el proyecto destino. |
+| `npm run deploy:hosting` | Compila producción (`predeploy`) y despliega solo Hosting en `fir-chae-projects`. |
 | `npm run admin:bootstrap` | Asigna el primer administrador en Authentication y Firestore (requiere credenciales locales temporales). |
 | `npm run admin:bootstrap:emulator` | Ejecuta el bootstrap del primer administrador contra los emuladores locales. |
 | `npm --prefix functions run build` | Compila el backend de Cloud Functions. |
