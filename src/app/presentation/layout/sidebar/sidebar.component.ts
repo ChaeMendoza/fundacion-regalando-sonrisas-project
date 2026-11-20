@@ -547,15 +547,15 @@ export class SidebarComponent {
   readonly tooltip = signal<TooltipState | null>(null);
 
   readonly navItems: NavItem[] = [
-    { path: '/dashboard', label: 'Inicio / Dashboard', icon: 'dashboard' },
+    { path: '/dashboard', label: 'Inicio / Dashboard', icon: 'dashboard', adminOnly: true },
     { path: '/', label: 'Portal Público Web', icon: 'public' },
-    { path: '/beneficiaries', label: 'Beneficiarios', icon: 'beneficiaries' },
-    { path: '/donations', label: 'Donaciones y Donantes', icon: 'donations' },
-    { path: '/volunteers', label: 'Voluntarios', icon: 'volunteers' },
-    { path: '/activities', label: 'Actividades', icon: 'activities' },
-    { path: '/requests', label: 'Solicitudes', icon: 'requests' },
-    { path: '/documents', label: 'Gestión Documental', icon: 'documents' },
-    { path: '/reports', label: 'Reportes e Indicadores', icon: 'reports' },
+    { path: '/beneficiaries', label: 'Beneficiarios', icon: 'beneficiaries', adminOnly: true },
+    { path: '/donations', label: 'Donaciones y Donantes', icon: 'donations', adminOnly: true },
+    { path: '/volunteers', label: 'Voluntarios', icon: 'volunteers', adminOnly: true },
+    { path: '/activities', label: 'Actividades', icon: 'activities', adminOnly: true },
+    { path: '/requests', label: 'Solicitudes', icon: 'requests', adminOnly: true },
+    { path: '/documents', label: 'Gestión Documental', icon: 'documents', adminOnly: true },
+    { path: '/reports', label: 'Reportes e Indicadores', icon: 'reports', adminOnly: true },
     { path: '/profile', label: 'Mi Perfil', icon: 'profile' },
     { path: '/admin', label: 'Administración', icon: 'admin', adminOnly: true },
   ];

@@ -150,8 +150,19 @@ export class MainLayoutComponent {
         return;
       }
 
-      if (this.router.url.startsWith('/admin') && !this.session.isAdmin()) {
-        void this.router.navigate(['/dashboard']);
+      // Si una cuenta con sesión abierta pierde el rol administrativo, se expulsa
+      // de cualquier módulo restringido (no solo de /admin).
+      let route = this.router.routerState.snapshot.root;
+      while (route.firstChild) {
+        route = route.firstChild;
+      }
+      const requiredRoles = route.data['roles'];
+      if (
+        Array.isArray(requiredRoles) &&
+        requiredRoles.includes('admin') &&
+        !this.session.isAdmin()
+      ) {
+        void this.router.navigate([route.data['redirectTo'] ?? '/dashboard']);
       }
     });
   }

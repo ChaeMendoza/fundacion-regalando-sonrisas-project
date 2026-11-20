@@ -237,7 +237,7 @@ export class PendingAccessComponent {
   constructor() {
     effect(() => {
       if (this.session.isInitialized() && this.session.isApproved()) {
-        void this.router.navigate(['/dashboard']);
+        void this.router.navigate([this.session.homeRoute()]);
       }
     });
   }

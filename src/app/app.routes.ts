@@ -3,6 +3,9 @@ import { MainLayoutComponent } from './presentation/layout/main-layout/main-layo
 import { authGuard } from './presentation/guards/auth.guard';
 import { roleGuard } from './presentation/guards/role.guard';
 
+/** Las rutas de gestión institucional son exclusivas del administrador aprobado. */
+const adminOnly = { canActivate: [roleGuard], data: { roles: ['admin'], redirectTo: '/profile' } };
+
 export const routes: Routes = [
   {
     path: 'login',
@@ -41,6 +44,7 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
+        ...adminOnly,
         loadComponent: () =>
           import('./presentation/pages/dashboard/dashboard.component').then(
             (m) => m.DashboardComponent,
@@ -49,6 +53,7 @@ export const routes: Routes = [
       },
       {
         path: 'beneficiaries',
+        ...adminOnly,
         loadComponent: () =>
           import('./presentation/pages/beneficiaries/beneficiaries.component').then(
             (m) => m.BeneficiariesComponent,
@@ -57,6 +62,7 @@ export const routes: Routes = [
       },
       {
         path: 'donations',
+        ...adminOnly,
         loadComponent: () =>
           import('./presentation/pages/donations/donations.component').then(
             (m) => m.DonationsComponent,
@@ -65,6 +71,7 @@ export const routes: Routes = [
       },
       {
         path: 'volunteers',
+        ...adminOnly,
         loadComponent: () =>
           import('./presentation/pages/volunteers/volunteers.component').then(
             (m) => m.VolunteersComponent,
@@ -73,6 +80,7 @@ export const routes: Routes = [
       },
       {
         path: 'activities',
+        ...adminOnly,
         loadComponent: () =>
           import('./presentation/pages/activities/activities.component').then(
             (m) => m.ActivitiesComponent,
@@ -81,6 +89,7 @@ export const routes: Routes = [
       },
       {
         path: 'requests',
+        ...adminOnly,
         loadComponent: () =>
           import('./presentation/pages/requests/requests.component').then(
             (m) => m.RequestsComponent,
@@ -89,6 +98,7 @@ export const routes: Routes = [
       },
       {
         path: 'documents',
+        ...adminOnly,
         loadComponent: () =>
           import('./presentation/pages/documents/documents.component').then(
             (m) => m.DocumentsComponent,
@@ -97,6 +107,7 @@ export const routes: Routes = [
       },
       {
         path: 'reports',
+        ...adminOnly,
         loadComponent: () =>
           import('./presentation/pages/reports/reports.component').then((m) => m.ReportsComponent),
         title: 'Reportes e Indicadores | Fundación Regalando Sonrisas',
@@ -109,8 +120,7 @@ export const routes: Routes = [
       },
       {
         path: 'admin',
-        canActivate: [roleGuard],
-        data: { roles: ['admin'] },
+        ...adminOnly,
         loadComponent: () =>
           import('./presentation/pages/admin/admin.component').then((m) => m.AdminComponent),
         title: 'Administración y Seguridad | Fundación Regalando Sonrisas',

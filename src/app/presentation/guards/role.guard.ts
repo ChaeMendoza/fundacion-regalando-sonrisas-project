@@ -28,6 +28,7 @@ export const roleGuard: CanActivateFn = async (route: ActivatedRouteSnapshot) =>
     return true;
   }
 
-  // Si el usuario no tiene el rol requerido, redirige al dashboard
-  return router.createUrlTree(['/dashboard']);
+  // Las rutas administrativas redirigen a un destino seguro para el usuario normal.
+  const redirectTo = (route.data['redirectTo'] as string | undefined) ?? '/dashboard';
+  return router.createUrlTree([redirectTo]);
 };

@@ -1,6 +1,7 @@
 import { AppUser, UserRole, isUserAdmin } from '../../../domain/entities/user.entity';
 import { AuditLogRepository } from '../../../domain/repositories/audit-log.repository';
 import { AuthRepository } from '../../../domain/repositories/auth.repository';
+import { UserAccessClaimsRepository } from '../../../domain/repositories/user-access-claims.repository';
 import { UserProfileRepository } from '../../../domain/repositories/user-profile.repository';
 
 export class ManageUserAccessUseCase {
@@ -8,6 +9,7 @@ export class ManageUserAccessUseCase {
     private readonly userProfiles: UserProfileRepository,
     private readonly auth: AuthRepository,
     private readonly auditLogs: AuditLogRepository,
+    private readonly accessClaims: UserAccessClaimsRepository,
   ) {}
 
   async approveUser(targetUid: string, role?: UserRole): Promise<AppUser> {
@@ -34,6 +36,8 @@ export class ManageUserAccessUseCase {
       newStatus: 'approved',
       role: assignedRole,
     });
+
+    await this.syncAccessClaims(target.uid);
 
     return updated;
   }
@@ -67,6 +71,8 @@ export class ManageUserAccessUseCase {
       reason: cleanReason,
     });
 
+    await this.syncAccessClaims(target.uid);
+
     return updated;
   }
 
@@ -99,6 +105,8 @@ export class ManageUserAccessUseCase {
       reason: cleanReason,
     });
 
+    await this.syncAccessClaims(target.uid);
+
     return updated;
   }
 
@@ -125,6 +133,8 @@ export class ManageUserAccessUseCase {
       newStatus: 'approved',
       role: updated.role,
     });
+
+    await this.syncAccessClaims(target.uid);
 
     return updated;
   }
@@ -156,7 +166,22 @@ export class ManageUserAccessUseCase {
       newRole,
     });
 
+    await this.syncAccessClaims(target.uid);
+
     return updated;
+  }
+
+  /**
+   * Propaga el cambio de acceso a Firebase Authentication. Si el backend no está
+   * desplegado, el perfil en Firestore sigue siendo la fuente operativa y las
+   * reglas lo respaldan para lecturas individuales y escrituras.
+   */
+  private async syncAccessClaims(targetUid: string): Promise<void> {
+    try {
+      await this.accessClaims.sync(targetUid);
+    } catch (err) {
+      console.warn('No se pudieron sincronizar los Custom Claims del usuario:', err);
+    }
   }
 
   private requireAdmin(): AppUser {

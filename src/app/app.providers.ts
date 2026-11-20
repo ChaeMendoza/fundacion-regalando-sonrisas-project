@@ -11,9 +11,11 @@ import { GetUsersUseCase } from './application/use-cases/users/get-users.use-cas
 import { ManageUserAccessUseCase } from './application/use-cases/users/manage-user-access.use-case';
 import { AuditLogRepository } from './domain/repositories/audit-log.repository';
 import { AuthRepository } from './domain/repositories/auth.repository';
+import { UserAccessClaimsRepository } from './domain/repositories/user-access-claims.repository';
 import { UserProfileRepository } from './domain/repositories/user-profile.repository';
 import { IS_PRODUCTION } from './presentation/config/runtime-config.token';
 import { FirebaseAuthRepository } from './infrastructure/repositories/firebase-auth.repository';
+import { FirebaseFunctionsUserAccessClaimsRepository } from './infrastructure/repositories/firebase-functions-user-access-claims.repository';
 import { FirestoreAuditLogRepository } from './infrastructure/repositories/firestore-audit-log.repository';
 import { FirestoreUserProfileRepository } from './infrastructure/repositories/firestore-user-profile.repository';
 
@@ -24,6 +26,10 @@ export const APP_PROVIDERS: Provider[] = [
   { provide: AuthRepository, useExisting: FirebaseAuthRepository },
   { provide: AuditLogRepository, useExisting: FirestoreAuditLogRepository },
   { provide: UserProfileRepository, useExisting: FirestoreUserProfileRepository },
+  {
+    provide: UserAccessClaimsRepository,
+    useExisting: FirebaseFunctionsUserAccessClaimsRepository,
+  },
 
   {
     provide: LoginUseCase,
@@ -67,8 +73,12 @@ export const APP_PROVIDERS: Provider[] = [
   },
   {
     provide: ManageUserAccessUseCase,
-    useFactory: (u: UserProfileRepository, a: AuthRepository, l: AuditLogRepository) =>
-      new ManageUserAccessUseCase(u, a, l),
-    deps: [UserProfileRepository, AuthRepository, AuditLogRepository],
+    useFactory: (
+      u: UserProfileRepository,
+      a: AuthRepository,
+      l: AuditLogRepository,
+      c: UserAccessClaimsRepository,
+    ) => new ManageUserAccessUseCase(u, a, l, c),
+    deps: [UserProfileRepository, AuthRepository, AuditLogRepository, UserAccessClaimsRepository],
   },
 ];

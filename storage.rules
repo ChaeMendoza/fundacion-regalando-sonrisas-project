@@ -1,28 +1,41 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    
-    function hasApprovedProfile() {
-      return request.auth != null
-        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
-        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.status in ['approved', 'active']
-        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['admin', 'user', 'volunteer', 'authorized_staff'];
+    function isAuthenticated() {
+      return request.auth != null;
     }
-    
+
+    function hasAdminClaims() {
+      return isAuthenticated()
+        && request.auth.token.get('role', '') == 'admin'
+        && request.auth.token.get('status', '') == 'approved';
+    }
+
+    function hasAdminProfile() {
+      return isAuthenticated()
+        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.status == 'approved'
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isAdmin() {
+      return hasAdminClaims() || hasAdminProfile();
+    }
+
     function isValidSize() {
       // Límite de 10 MB por archivo para prevenir saturación de almacenamiento
       return request.resource.size < 10 * 1024 * 1024;
     }
 
-    // Regla por defecto: Denegación de acceso público
+    // Regla por defecto: denegación de acceso público
     match /{allPaths=**} {
       allow read, write: if false;
     }
 
-    // Archivos organizados por módulos
+    // Archivos organizados por módulos: gestión documental administrativa
     match /{moduleName}/{recordId}/{fileName} {
-      allow read: if hasApprovedProfile();
-      allow write: if hasApprovedProfile() && isValidSize();
+      allow read: if isAdmin();
+      allow write: if isAdmin() && isValidSize();
     }
   }
 }

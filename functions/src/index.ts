@@ -14,6 +14,28 @@ if (!admin.apps.length) {
 
 const VALID_ROLES = new Set(['admin', 'user', 'volunteer', 'authorized_staff']);
 const VALID_STATUSES = new Set(['pending', 'approved', 'rejected', 'disabled']);
+const VALID_AUDIT_ACTIONS = new Set([
+  'create',
+  'update',
+  'delete',
+  'deactivate',
+  'login',
+  'logout',
+  'export',
+  'view_sensitive',
+]);
+const VALID_AUDIT_MODULES = new Set([
+  'auth',
+  'beneficiaries',
+  'donations',
+  'volunteers',
+  'activities',
+  'documents',
+  'requests',
+  'reports',
+  'profile',
+  'admin',
+]);
 
 /**
  * Healthcheck de Cloud Functions para verificación de operatividad del backend.
@@ -47,6 +69,26 @@ export const logAuditEvent = functions.https.onCall(async (request) => {
     throw new functions.https.HttpsError(
       'invalid-argument',
       'Los campos action y module son obligatorios.',
+    );
+  }
+
+  if (!VALID_AUDIT_ACTIONS.has(action) || !VALID_AUDIT_MODULES.has(module)) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'Los campos action o module no son válidos.',
+    );
+  }
+
+  const callerSnap = await admin.firestore().collection('users').doc(request.auth.uid).get();
+  const callerData = callerSnap.data();
+  if (
+    !callerSnap.exists ||
+    callerData?.['status'] !== 'approved' ||
+    !VALID_ROLES.has(String(callerData?.['role'] ?? ''))
+  ) {
+    throw new functions.https.HttpsError(
+      'permission-denied',
+      'Solo un usuario aprobado puede registrar eventos de auditoría.',
     );
   }
 
@@ -118,9 +160,19 @@ export const syncUserAccessClaims = functions.https.onCall(async (request) => {
     );
   }
 
+  // Revocar los tokens de actualización cuando cambian el rol o el estado
+  // evita que un perfil degradado conserve Custom Claims antiguos en su JWT.
+  const targetAuthUser = await admin.auth().getUser(targetUid);
+  const previousClaims = (targetAuthUser.customClaims || {}) as Record<string, unknown>;
+
   await admin.auth().setCustomUserClaims(targetUid, { role, status });
 
-  if (status === 'rejected' || status === 'disabled') {
+  if (
+    previousClaims['role'] !== role ||
+    previousClaims['status'] !== status ||
+    status === 'rejected' ||
+    status === 'disabled'
+  ) {
     await admin.auth().revokeRefreshTokens(targetUid);
   }
 

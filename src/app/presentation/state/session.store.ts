@@ -68,6 +68,8 @@ export class SessionStore implements OnDestroy {
   readonly userStatus = computed<UserStatus | null>(() => this.user()?.status ?? null);
   readonly isApproved = computed(() => isUserApproved(this.user()));
   readonly isAdmin = computed(() => isUserAdmin(this.user()));
+  /** Destino inicial según privilegios: el panel administrativo no es público. */
+  readonly homeRoute = computed(() => (this.isAdmin() ? '/dashboard' : '/profile'));
 
   waitUntilInitialized(): Promise<AppUser | null> {
     return this.initialState;

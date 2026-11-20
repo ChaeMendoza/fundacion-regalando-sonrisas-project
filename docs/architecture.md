@@ -51,7 +51,7 @@ src/app/
 src/environments/                # Configuración por entorno (consumida solo por la raíz de composición e infraestructura)
 ```
 
-Las rutas públicas `/login` y `/register` usan casos de uso de autenticación; las rutas internas requieren una sesión con perfil `approved` y rol asignado (`admin` o `user`), validado por `authGuard` y en tiempo real mediante suscripción a `users/{uid}`. La ruta `/admin` está protegida adicionalmente por `roleGuard` (`roles: ['admin']`). Los registros nuevos crean un documento `users/{uid}` con estado `pending` y rol `user`. Firestore y Storage aplican el mismo control de estado y rol a nivel de servidor. El primer administrador se inicializa mediante el procedimiento idempotente `functions/src/bootstrap-admin.ts` (Firebase Admin SDK) y, a partir de ese momento, gestiona la aprobación, rechazo, deshabilitación, reactivación y roles de cuentas desde `/admin`.
+Las rutas públicas `/login` y `/register` usan casos de uso de autenticación; las rutas internas requieren una sesión con perfil `approved` y rol asignado (`admin` o `user`), validado por `authGuard` y en tiempo real mediante suscripción a `users/{uid}`. El panel y todos los módulos de gestión institucional están protegidos por `roleGuard` (`roles: ['admin']`); el usuario normal solo accede a `/profile`. Los registros nuevos crean un documento `users/{uid}` con estado `pending` y rol `user`. Firestore y Storage aplican el mismo control de estado y rol a nivel de servidor. El primer administrador se inicializa mediante el procedimiento idempotente `functions/src/bootstrap-admin.ts` (Firebase Admin SDK) y, a partir de ese momento, gestiona la aprobación, rechazo, deshabilitación, reactivación y roles de cuentas desde `/admin`.
 
 ---
 

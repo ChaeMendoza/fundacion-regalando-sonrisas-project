@@ -101,4 +101,26 @@ describe('authGuard and roleGuard', () => {
     );
     expect(allowedResult).toBe(true);
   });
+
+  it('redirects regular users from institutional modules to their profile', async () => {
+    const router = TestBed.inject(Router);
+    const moduleRoute = {
+      data: { roles: ['admin'], redirectTo: '/profile' },
+    } as unknown as ActivatedRouteSnapshot;
+
+    mockUser = {
+      uid: 'u-1',
+      email: 'user@fundacion.org',
+      displayName: 'Usuario Regular',
+      role: 'user',
+      status: 'approved',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+
+    const result = await TestBed.runInInjectionContext(() =>
+      roleGuard(moduleRoute, {} as RouterStateSnapshot),
+    );
+    expect(result instanceof UrlTree && router.serializeUrl(result)).toBe('/profile');
+  });
 });

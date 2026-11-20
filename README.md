@@ -24,7 +24,7 @@ Las páginas y módulos de gestión muestran el flujo de referencia del sistema;
 - Para el frontend y Firebase CLI: Node.js 22.22.3+ de la serie 22 o 24.15.0+ de la serie 24. Angular 22 requiere esas versiones mínimas y la versión instalada de Firebase CLI incluye una dependencia que no declara soporte para Node 26.
 - Para Cloud Functions: Node.js 20, según `functions/package.json`.
 - npm 11.19.1 para el proyecto principal.
-- Java si se ejecuta la suite de emuladores de Firebase.
+- Java 21 o superior y Node 24.12+ si se ejecutan las pruebas de reglas (`npm run test:rules`): `firebase-tools` 15 no soporta JDK 17 y `@firebase/rules-unit-testing` 6 requiere Node 24.12+.
 
 ## Instalación y ejecución local
 
@@ -117,6 +117,7 @@ npm run emulators:start
 | `npm start` | Inicia el servidor de desarrollo Angular. |
 | `npm run build` | Compila la aplicación; por defecto utiliza la configuración de producción. |
 | `npm test` | Ejecuta las pruebas unitarias. |
+| `npm run test:rules` | Ejecuta las pruebas de reglas de Firestore contra los emuladores de Auth y Firestore (requiere Java 21+). |
 | `npm run lint` | Analiza el código Angular con ESLint. |
 | `npm run emulators:start` | Inicia los emuladores configurados en `firebase.json`. |
 | `npm run deploy:firestore-rules` | Publica exclusivamente `firestore.rules` en Firebase (sin desplegar Storage). |
@@ -161,6 +162,10 @@ docs/architecture.md              # Descripción arquitectónica y decisiones do
 ```
 
 El detalle de las capas y los contratos está en [`docs/architecture.md`](docs/architecture.md).
+
+## Autorización y seguridad
+
+El panel, los módulos institucionales (beneficiarios, donaciones, voluntarios, actividades, solicitudes, documentos), los reportes y la bitácora son de uso exclusivo del administrador aprobado. El usuario aprobado accede a su perfil y no puede consultar ni modificar información de terceros. Firestore aplica esta separación con Custom Claims para consultas a colecciones y con el perfil `users/{uid}` para lecturas individuales y escrituras; las rutas y el menú reflejan el mismo criterio. La matriz completa, las causas corregidas y los pasos manuales de despliegue están en [`docs/security-and-permissions.md`](docs/security-and-permissions.md).
 
 ## Alcance y estado
 

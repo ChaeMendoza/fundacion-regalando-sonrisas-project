@@ -1,6 +1,14 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // ---------------------------------------------------------------------
+    // Identidad y autorización
+    // ---------------------------------------------------------------------
+    // Los Custom Claims son la única fuente de autorización que Firestore puede
+    // evaluar en operaciones `list` (consultas a colecciones): las reglas no
+    // permiten get()/exists() sobre otros documentos en ese tipo de lectura.
+    // El documento users/{uid} se mantiene como respaldo para lecturas
+    // individuales (`get`) y escrituras, donde get() sí está permitido.
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -9,20 +17,37 @@ service cloud.firestore {
       return /databases/$(database)/documents/users/$(userId);
     }
 
-    function currentUserDoc() {
-      return get(userProfilePath(request.auth.uid));
+    function hasAdminClaims() {
+      return isAuthenticated()
+        && request.auth.token.get('role', '') == 'admin'
+        && request.auth.token.get('status', '') == 'approved';
     }
 
     function hasApprovedProfile() {
       return isAuthenticated()
         && exists(userProfilePath(request.auth.uid))
-        && currentUserDoc().data.status in ['approved', 'active']
-        && currentUserDoc().data.role in ['admin', 'user', 'volunteer', 'authorized_staff'];
+        && get(userProfilePath(request.auth.uid)).data.status == 'approved'
+        && get(userProfilePath(request.auth.uid)).data.role in ['admin', 'user', 'volunteer', 'authorized_staff'];
     }
 
-    function isAdmin() {
+    function hasAdminProfile() {
       return hasApprovedProfile()
-        && currentUserDoc().data.role == 'admin';
+        && get(userProfilePath(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Consultas a colección: solo claims (get() está prohibido en `list`).
+    // Lectura de un documento y cualquier escritura: perfil actual, nunca un
+    // claim obsoleto que pudiera conservar privilegios tras una degradación.
+    function isAdminRead() {
+      return request.method == 'get' ? hasAdminProfile() : hasAdminClaims();
+    }
+
+    function isAdminWrite() {
+      return hasAdminProfile();
+    }
+
+    function isApprovedWrite() {
+      return hasApprovedProfile();
     }
 
     function isValidUserStatus(status) {
@@ -38,34 +63,33 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Configuración interna de inicialización (solo modificable mediante Firebase Admin SDK)
+    // Configuración interna de inicialización (solo Firebase Admin SDK)
     match /system_config/{configId} {
-      allow read: if isAdmin();
+      allow read: if isAdminRead();
       allow write: if false;
     }
 
     // Perfiles de usuarios y control de acceso
     match /users/{userId} {
-      // Cada usuario solo puede leer su propio documento; los administradores pueden leer todos
-      allow read: if (isAuthenticated() && request.auth.uid == userId) || isAdmin();
+      // Cada usuario solo lee su propio documento; el administrador lee todos.
+      allow read: if (isAuthenticated() && request.auth.uid == userId) || isAdminRead();
 
-      // Registro inicial: el usuario solo puede crear su propio perfil en estado 'pending' y rol 'user'
+      // Registro inicial: el usuario crea ÚNICAMENTE su perfil como pending/user.
       allow create: if isAuthenticated()
         && request.auth.uid == userId
         && request.resource.data.uid == userId
+        && request.resource.data.email is string
         && request.resource.data.status == 'pending'
         && request.resource.data.role == 'user'
         && (!('approvedBy' in request.resource.data) || request.resource.data.approvedBy == null)
         && (!('approvedAt' in request.resource.data) || request.resource.data.approvedAt == null);
 
-      // Actualización:
-      // 1) Administrador aprobado puede aprobar, rechazar, deshabilitar, reactivar o cambiar rol,
-      //    sin alterar el UID original ni auto-revocarse su propio rol/estado administrativo.
-      // 2) Usuario propietario solo puede actualizar datos básicos no privilegiados sin cambiar
-      //    su rol, estado, UID, email ni metadatos de aprobación.
+      // Actualización administrativa: roles y estados válidos, UID/email inmutables
+      // y prohibición de auto-revocar el propio rol administrativo.
       allow update: if (
-          isAdmin()
+          isAdminWrite()
           && request.resource.data.uid == resource.data.uid
+          && request.resource.data.email == resource.data.email
           && isValidUserStatus(request.resource.data.status)
           && isValidUserRole(request.resource.data.role)
           && (
@@ -73,6 +97,7 @@ service cloud.firestore {
             || (request.resource.data.role == 'admin' && request.resource.data.status == 'approved')
           )
         ) || (
+          // El propietario solo modifica datos personales no privilegiados.
           isAuthenticated()
           && request.auth.uid == userId
           && request.resource.data.uid == resource.data.uid
@@ -81,64 +106,71 @@ service cloud.firestore {
           && request.resource.data.status == resource.data.status
           && request.resource.data.get('approvedBy', null) == resource.data.get('approvedBy', null)
           && request.resource.data.get('approvedAt', null) == resource.data.get('approvedAt', null)
+          && request.resource.data.get('rejectionReason', null) == resource.data.get('rejectionReason', null)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'displayName', 'phoneNumber', 'photoUrl', 'updatedAt', 'updatedBy'
+          ])
         );
 
       allow delete: if false;
     }
 
+    // ---------------------------------------------------------------------
+    // Módulos institucionales: gestión exclusiva del administrador.
+    // Soft delete (isActive: false); no se permite borrado físico.
+    // ---------------------------------------------------------------------
     match /beneficiaries/{beneficiaryId} {
-      allow read: if hasApprovedProfile();
-      allow create: if hasApprovedProfile() && request.resource.data.createdBy == request.auth.uid;
-      allow update: if hasApprovedProfile() && request.resource.data.updatedBy == request.auth.uid;
+      allow read: if isAdminRead();
+      allow create, update: if isAdminWrite();
       allow delete: if false;
     }
 
     match /donations/{donationId} {
-      allow read: if hasApprovedProfile();
-      allow create: if hasApprovedProfile() && request.resource.data.createdBy == request.auth.uid;
-      allow update: if hasApprovedProfile() && request.resource.data.updatedBy == request.auth.uid;
-      allow delete: if false;
-    }
-
-    match /volunteers/{volunteerId} {
-      allow read: if hasApprovedProfile();
-      allow create: if hasApprovedProfile() && request.resource.data.createdBy == request.auth.uid;
-      allow update: if hasApprovedProfile() && request.resource.data.updatedBy == request.auth.uid;
-      allow delete: if false;
-    }
-
-    match /activities/{activityId} {
-      allow read: if hasApprovedProfile();
-      allow create: if hasApprovedProfile() && request.resource.data.createdBy == request.auth.uid;
-      allow update: if hasApprovedProfile() && request.resource.data.updatedBy == request.auth.uid;
-      allow delete: if false;
-    }
-
-    match /documents/{documentId} {
-      allow read: if hasApprovedProfile();
-      allow create: if hasApprovedProfile() && request.resource.data.uploadedBy == request.auth.uid;
-      allow update: if hasApprovedProfile() && request.resource.data.updatedBy == request.auth.uid;
+      allow read: if isAdminRead();
+      allow create, update: if isAdminWrite();
       allow delete: if false;
     }
 
     match /donors/{donorId} {
-      allow read: if hasApprovedProfile();
-      allow create: if hasApprovedProfile() && request.resource.data.createdBy == request.auth.uid;
-      allow update: if hasApprovedProfile() && request.resource.data.updatedBy == request.auth.uid;
+      allow read: if isAdminRead();
+      allow create, update: if isAdminWrite();
+      allow delete: if false;
+    }
+
+    match /volunteers/{volunteerId} {
+      allow read: if isAdminRead();
+      allow create, update: if isAdminWrite();
+      allow delete: if false;
+    }
+
+    match /activities/{activityId} {
+      allow read: if isAdminRead();
+      allow create, update: if isAdminWrite();
+      allow delete: if false;
+    }
+
+    match /documents/{documentId} {
+      allow read: if isAdminRead();
+      allow create, update: if isAdminWrite();
       allow delete: if false;
     }
 
     match /requests/{requestId} {
-      allow read: if hasApprovedProfile();
-      allow create: if hasApprovedProfile() && request.resource.data.createdBy == request.auth.uid;
-      allow update: if hasApprovedProfile() && request.resource.data.updatedBy == request.auth.uid;
+      allow read: if isAdminRead();
+      allow create, update: if isAdminWrite();
       allow delete: if false;
     }
 
-    // Bitácora administrativa de auditoría (inmutable; consulta exclusiva para administradores)
+    // Bitácora inmutable: solo el administrador la consulta; cualquier usuario
+    // aprobado puede registrar eventos propios con campos acotados.
     match /audit_logs/{logId} {
-      allow read: if isAdmin();
-      allow create: if hasApprovedProfile() && request.resource.data.userId == request.auth.uid;
+      allow read: if isAdminRead();
+      allow create: if isApprovedWrite()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.userEmail is string
+        && request.resource.data.action in ['create', 'update', 'delete', 'deactivate', 'login', 'logout', 'export', 'view_sensitive']
+        && request.resource.data.module in ['auth', 'beneficiaries', 'donations', 'volunteers', 'activities', 'documents', 'requests', 'reports', 'profile', 'admin']
+        && request.resource.data.timestamp is string;
       allow update, delete: if false;
     }
   }

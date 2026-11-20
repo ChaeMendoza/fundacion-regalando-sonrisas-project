@@ -1,6 +1,7 @@
 import { AppUser } from '../../../domain/entities/user.entity';
 import { AuditLogRepository } from '../../../domain/repositories/audit-log.repository';
 import { AuthRepository } from '../../../domain/repositories/auth.repository';
+import { UserAccessClaimsRepository } from '../../../domain/repositories/user-access-claims.repository';
 import {
   UpdateUserAccessInput,
   UserProfileRepository,
@@ -33,6 +34,7 @@ describe('ManageUserAccessUseCase', () => {
   let userProfilesMock: UserProfileRepository;
   let authMock: AuthRepository;
   let auditLogsMock: AuditLogRepository;
+  let accessClaimsMock: UserAccessClaimsRepository;
   let useCase: ManageUserAccessUseCase;
 
   beforeEach(() => {
@@ -89,7 +91,16 @@ describe('ManageUserAccessUseCase', () => {
       getAll: vi.fn(async () => []),
     };
 
-    useCase = new ManageUserAccessUseCase(userProfilesMock, authMock, auditLogsMock);
+    accessClaimsMock = {
+      sync: vi.fn(async () => undefined),
+    };
+
+    useCase = new ManageUserAccessUseCase(
+      userProfilesMock,
+      authMock,
+      auditLogsMock,
+      accessClaimsMock,
+    );
   });
 
   it('approves a pending user and records approval metadata and audit log', async () => {
@@ -160,5 +171,22 @@ describe('ManageUserAccessUseCase', () => {
     await expect(useCase.changeUserRole(adminUser.uid, 'user')).rejects.toThrow(
       /no puede revocar su propio rol/,
     );
+  });
+
+  it('synchronizes Firebase Custom Claims after every access change', async () => {
+    await useCase.approveUser(pendingUser.uid, 'user');
+    await useCase.changeUserRole(pendingUser.uid, 'admin');
+    await useCase.disableUser(pendingUser.uid);
+
+    expect(accessClaimsMock.sync).toHaveBeenCalledTimes(3);
+    expect(accessClaimsMock.sync).toHaveBeenCalledWith(pendingUser.uid);
+  });
+
+  it('keeps the profile operation successful when claims synchronization is unavailable', async () => {
+    vi.mocked(accessClaimsMock.sync).mockRejectedValueOnce(new Error('functions not deployed'));
+
+    await expect(useCase.approveUser(pendingUser.uid, 'user')).resolves.toMatchObject({
+      status: 'approved',
+    });
   });
 });
