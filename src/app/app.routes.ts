@@ -27,6 +27,25 @@ export const routes: Routes = [
       ),
     title: 'Estado de cuenta | Fundación Regalando Sonrisas',
   },
+  // Documentos institucionales públicos (sin autenticación)
+  {
+    path: 'terminos-y-condiciones',
+    loadComponent: () =>
+      import('./presentation/pages/legal/legal-document.component').then(
+        (m) => m.LegalDocumentComponent,
+      ),
+    data: { legalDocument: 'terms' },
+    title: 'Términos y Condiciones de Uso | Fundación Regalando Sonrisas',
+  },
+  {
+    path: 'politica-de-privacidad',
+    loadComponent: () =>
+      import('./presentation/pages/legal/legal-document.component').then(
+        (m) => m.LegalDocumentComponent,
+      ),
+    data: { legalDocument: 'privacy' },
+    title: 'Política de Privacidad | Fundación Regalando Sonrisas',
+  },
   // Portal público institucional (Landing Page)
   {
     path: '',

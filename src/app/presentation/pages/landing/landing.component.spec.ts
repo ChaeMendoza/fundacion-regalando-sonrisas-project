@@ -32,4 +32,16 @@ describe('LandingComponent', () => {
     const enterButtons = element.querySelectorAll('a[href="/login"]');
     expect(enterButtons.length).toBeGreaterThan(0);
   });
+
+  it('links both legal documents from the public footer', () => {
+    const element = fixture.nativeElement as HTMLElement;
+    const footer = element.querySelector('.landing-footer');
+
+    expect(footer?.querySelector('a[href="/terminos-y-condiciones"]')?.textContent).toContain(
+      'Términos y Condiciones de Uso',
+    );
+    expect(footer?.querySelector('a[href="/politica-de-privacidad"]')?.textContent).toContain(
+      'Política de Privacidad',
+    );
+  });
 });

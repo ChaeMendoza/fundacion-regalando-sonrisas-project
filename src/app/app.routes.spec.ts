@@ -32,4 +32,19 @@ describe('app.routes access control', () => {
     expect(profile).toBeDefined();
     expect(profile?.canActivate).not.toContain(roleGuard);
   });
+
+  it('exposes both legal documents as public routes', () => {
+    const legalPaths = [
+      { path: 'terminos-y-condiciones', document: 'terms' },
+      { path: 'politica-de-privacidad', document: 'privacy' },
+    ];
+
+    for (const expected of legalPaths) {
+      const route = routes.find((candidate) => candidate.path === expected.path);
+      expect(route, `Ruta ${expected.path} no encontrada`).toBeDefined();
+      expect(route?.canActivate).toBeUndefined();
+      expect(route?.data?.['legalDocument']).toBe(expected.document);
+      expect(route?.loadComponent).toBeTypeOf('function');
+    }
+  });
 });

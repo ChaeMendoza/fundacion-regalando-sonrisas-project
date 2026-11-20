@@ -1,0 +1,138 @@
+<main class="legal-page">
+  <div class="legal-page__shell">
+    <a routerLink="/" class="legal-page__back">← Volver al portal institucional</a>
+
+    <header class="legal-page__header">
+      <p class="legal-page__eyebrow">Portal institucional · Fundación Regalando Sonrisas</p>
+      <h1>{{ document().title }}</h1>
+      <p class="legal-page__subtitle">{{ document().subtitle }}</p>
+      <div class="legal-page__meta">
+        <span><strong>Versión:</strong> {{ document().version }}</span>
+        <span><strong>Última actualización:</strong> {{ document().lastUpdated }}</span>
+      </div>
+    </header>
+
+    <nav class="legal-page__toc" aria-label="Secciones del documento">
+      <p class="legal-page__toc-title">Contenido del documento</p>
+      <ul>
+        @for (section of document().sections; track section.id; let sectionIndex = $index) {
+          <li>
+            <a [href]="'#' + section.id">{{ sectionIndex + 1 }}. {{ section.title }}</a>
+          </li>
+        }
+      </ul>
+    </nav>
+
+    <div class="legal-page__intro">
+      @for (part of document().intro; track $index) {
+        @if (isLink(part)) {
+          <a [routerLink]="part.link">{{ part.label }}</a>
+        } @else {
+          {{ part }}
+        }
+      }
+    </div>
+
+    <article class="legal-page__body">
+      @for (section of document().sections; track section.id; let sectionIndex = $index) {
+        <section class="legal-section" [id]="section.id">
+          <h2>{{ sectionIndex + 1 }}. {{ section.title }}</h2>
+
+          @for (block of section.blocks; track $index) {
+            @switch (block.kind) {
+              @case ('paragraph') {
+                <p class="legal-section__paragraph">
+                  @for (part of block.parts; track $index) {
+                    @if (isLink(part)) {
+                      <a [routerLink]="part.link">{{ part.label }}</a>
+                    } @else {
+                      {{ part }}
+                    }
+                  }
+                </p>
+              }
+              @case ('list') {
+                @if (block.ordered) {
+                  <ol class="legal-section__list">
+                    @for (item of block.items; track $index) {
+                      <li>
+                        @for (part of item; track $index) {
+                          @if (isLink(part)) {
+                            <a [routerLink]="part.link">{{ part.label }}</a>
+                          } @else {
+                            {{ part }}
+                          }
+                        }
+                      </li>
+                    }
+                  </ol>
+                } @else {
+                  <ul class="legal-section__list">
+                    @for (item of block.items; track $index) {
+                      <li>
+                        @for (part of item; track $index) {
+                          @if (isLink(part)) {
+                            <a [routerLink]="part.link">{{ part.label }}</a>
+                          } @else {
+                            {{ part }}
+                          }
+                        }
+                      </li>
+                    }
+                  </ul>
+                }
+              }
+              @case ('note') {
+                <aside class="legal-note">
+                  @if (block.title) {
+                    <h3>{{ block.title }}</h3>
+                  }
+                  <p>
+                    @for (part of block.parts; track $index) {
+                      @if (isLink(part)) {
+                        <a [routerLink]="part.link">{{ part.label }}</a>
+                      } @else {
+                        {{ part }}
+                      }
+                    }
+                  </p>
+                </aside>
+              }
+              @case ('table') {
+                <div class="legal-table-wrap">
+                  <table class="legal-table">
+                    <thead>
+                      <tr>
+                        @for (header of block.headers; track $index) {
+                          <th scope="col">{{ header }}</th>
+                        }
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (row of block.rows; track $index) {
+                        <tr>
+                          @for (cell of row; track $index) {
+                            <td>{{ cell }}</td>
+                          }
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            }
+          }
+        </section>
+      }
+    </article>
+
+    <footer class="legal-page__footer">
+      <p>
+        Fundación Regalando Sonrisas · Quito, Ecuador<br />
+        Documento institucional versión {{ document().version }} · Actualizado el
+        {{ document().lastUpdated }}
+      </p>
+      <a routerLink="/register">Solicitar acceso al sistema →</a>
+    </footer>
+  </div>
+</main>

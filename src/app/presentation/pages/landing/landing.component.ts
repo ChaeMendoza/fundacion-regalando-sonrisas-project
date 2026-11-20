@@ -277,6 +277,12 @@ interface Pillar {
               <li><a href="#ejes-de-accion">Ejes de Acción</a></li>
               <li><a href="#transparencia">Transparencia</a></li>
               <li><a routerLink="/login">Sistema Interno</a></li>
+              <li>
+                <a routerLink="/terminos-y-condiciones">Términos y Condiciones de Uso</a>
+              </li>
+              <li>
+                <a routerLink="/politica-de-privacidad">Política de Privacidad</a>
+              </li>
             </ul>
           </div>
 
