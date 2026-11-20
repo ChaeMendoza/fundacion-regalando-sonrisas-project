@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { LEGAL_DOCUMENT_VERSIONS } from '../src/app/domain/entities/legal-document.entity';
 import {
   assertFails,
   assertSucceeds,
@@ -8,12 +9,17 @@ import {
 import {
   addDoc,
   collection,
+  collectionGroup,
   deleteDoc,
   doc,
   getDoc,
   getDocs,
+  query,
+  serverTimestamp,
   setDoc,
+  Timestamp,
   updateDoc,
+  where,
 } from 'firebase/firestore';
 
 const INSTITUTIONAL_COLLECTIONS = [
@@ -30,9 +36,16 @@ describe('Firestore Security Rules - Fundación Regalando Sonrisas', () => {
   let testEnv: RulesTestEnvironment;
 
   beforeAll(async () => {
+    const rules = readFileSync('firestore.rules', 'utf8');
+
+    // Las versiones deben permanecer sincronizadas entre la aplicación y las
+    // reglas; de lo contrario el cliente no podría registrar nuevas evidencias.
+    expect(rules).toContain(`termsVersion == '${LEGAL_DOCUMENT_VERSIONS.terms}'`);
+    expect(rules).toContain(`privacyVersion == '${LEGAL_DOCUMENT_VERSIONS.privacy}'`);
+
     testEnv = await initializeTestEnvironment({
       projectId: 'demo-regalando-sonrisas',
-      firestore: { rules: readFileSync('firestore.rules', 'utf8') },
+      firestore: { rules },
     });
   });
 
@@ -292,5 +305,94 @@ describe('Firestore Security Rules - Fundación Regalando Sonrisas', () => {
     await assertFails(addDoc(collection(db, 'donations'), { createdBy: 'anonymous' }));
     await assertFails(addDoc(collection(db, 'audit_logs'), { userId: 'anonymous' }));
     await assertFails(getDoc(doc(db, 'system_config', 'bootstrap')));
+  });
+
+  describe('legal acceptance evidence', () => {
+    const acceptancePath = (uid: string) => `users/${uid}/legal_acceptances/${uid}_1.0_1.0`;
+
+    const validPayload = (uid: string) => ({
+      uid,
+      termsVersion: '1.0',
+      privacyVersion: '1.0',
+      termsAccepted: true,
+      privacyInformationAcknowledged: true,
+      acceptedAt: serverTimestamp(),
+    });
+
+    it('lets a user create only their own evidence with the current versions', async () => {
+      const db = regularUser().firestore();
+      await assertSucceeds(setDoc(doc(db, acceptancePath('user-1')), validPayload('user-1')));
+
+      const saved = await getDoc(doc(db, acceptancePath('user-1')));
+      expect(saved.data()?.['termsVersion']).toBe('1.0');
+      expect(saved.data()?.['privacyInformationAcknowledged']).toBe(true);
+    });
+
+    it('rejects evidence for another user', async () => {
+      const db = regularUser().firestore();
+      await assertFails(setDoc(doc(db, acceptancePath('user-2')), validPayload('user-2')));
+      await assertFails(
+        setDoc(doc(db, 'users', 'user-2', 'legal_acceptances', 'forged'), validPayload('user-1')),
+      );
+    });
+
+    it('rejects forged versions, statuses or extra fields', async () => {
+      const db = regularUser().firestore();
+      const ref = doc(db, acceptancePath('user-1'));
+
+      await assertFails(setDoc(ref, { ...validPayload('user-1'), termsVersion: '9.9' }));
+      await assertFails(setDoc(ref, { ...validPayload('user-1'), privacyVersion: '9.9' }));
+      await assertFails(setDoc(ref, { ...validPayload('user-1'), termsAccepted: false }));
+      await assertFails(
+        setDoc(ref, { ...validPayload('user-1'), privacyInformationAcknowledged: false }),
+      );
+      await assertFails(setDoc(ref, { ...validPayload('user-1'), unexpected: 'data' }));
+      await assertFails(
+        setDoc(
+          doc(db, 'users', 'user-1', 'legal_acceptances', 'arbitrary-id'),
+          validPayload('user-1'),
+        ),
+      );
+    });
+
+    it('rejects a client-provided acceptance date', async () => {
+      const db = regularUser().firestore();
+      await assertFails(
+        setDoc(doc(db, acceptancePath('user-1')), {
+          ...validPayload('user-1'),
+          acceptedAt: Timestamp.fromDate(new Date('2020-01-01T00:00:00.000Z')),
+        }),
+      );
+    });
+
+    it('keeps evidence immutable and readable only by its owner or an admin', async () => {
+      const seededAt = Timestamp.fromDate(new Date('2026-01-01T00:00:00.000Z'));
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        await setDoc(doc(context.firestore(), acceptancePath('user-1')), {
+          ...validPayload('user-1'),
+          acceptedAt: seededAt,
+        });
+      });
+
+      const ownerDb = regularUser().firestore();
+      const otherDb = testEnv.authenticatedContext('user-2').firestore();
+      const adminDb = adminClaims().firestore();
+
+      await assertSucceeds(getDoc(doc(ownerDb, acceptancePath('user-1'))));
+      await assertFails(getDoc(doc(otherDb, acceptancePath('user-1'))));
+      await assertSucceeds(getDoc(doc(adminDb, acceptancePath('user-1'))));
+      await assertSucceeds(
+        getDocs(query(collectionGroup(adminDb, 'legal_acceptances'), where('uid', '==', 'user-1'))),
+      );
+      await assertFails(updateDoc(doc(ownerDb, acceptancePath('user-1')), { termsVersion: '9.9' }));
+      await assertFails(deleteDoc(doc(ownerDb, acceptancePath('user-1'))));
+      await assertFails(deleteDoc(doc(adminDb, acceptancePath('user-1'))));
+    });
+
+    it('does not allow unauthenticated reads or writes of evidence', async () => {
+      const db = unauthenticated().firestore();
+      await assertFails(getDoc(doc(db, acceptancePath('user-1'))));
+      await assertFails(setDoc(doc(db, acceptancePath('user-1')), validPayload('user-1')));
+    });
   });
 });

@@ -116,6 +116,55 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------------
+    // Evidencias de aceptación de documentos institucionales
+    // ---------------------------------------------------------------------
+    // Subcolección por usuario: un documento distinto por par de versiones,
+    // de modo que una versión nueva nunca sobrescribe la aceptación anterior.
+    // El administrador puede consultarlas (incluso por collectionGroup) para
+    // identificar cuentas con pendiente de conocer/aceptar una versión nueva.
+    function hasCurrentLegalDocumentVersions() {
+      return request.resource.data.termsVersion == '1.0'
+        && request.resource.data.privacyVersion == '1.0';
+    }
+
+    function isLegalAcceptancePayloadComplete() {
+      return request.resource.data.keys().hasAll([
+          'uid', 'termsVersion', 'privacyVersion', 'termsAccepted',
+          'privacyInformationAcknowledged', 'acceptedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'uid', 'termsVersion', 'privacyVersion', 'termsAccepted',
+          'privacyInformationAcknowledged', 'acceptedAt'
+        ]);
+    }
+
+    match /users/{userId}/legal_acceptances/{acceptanceId} {
+      allow read: if (isAuthenticated() && request.auth.uid == userId) || isAdminRead();
+
+      // Solo el titular puede crear su propia evidencia, con las versiones
+      // vigentes, ambas manifestaciones en true y fecha de servidor.
+      // No se permite actualizar ni borrar: la evidencia es inmutable.
+      allow create: if isAuthenticated()
+        && request.auth.uid == userId
+        && request.resource.data.uid == request.auth.uid
+        && isLegalAcceptancePayloadComplete()
+        && hasCurrentLegalDocumentVersions()
+        && acceptanceId == request.auth.uid + '_' + request.resource.data.termsVersion + '_' + request.resource.data.privacyVersion
+        && request.resource.data.termsAccepted == true
+        && request.resource.data.privacyInformationAcknowledged == true
+        && request.resource.data.acceptedAt == request.time;
+      allow update, delete: if false;
+    }
+
+    // Las consultas `collectionGroup` se evalúan contra el grupo de colección,
+    // no contra una ruta concreta; por eso requieren además esta coincidencia
+    // comodín. Solo se habilita `list` para el administrador: no permite
+    // crear, modificar ni eliminar evidencias.
+    match /{path=**}/legal_acceptances/{acceptanceId} {
+      allow list: if hasAdminClaims();
+    }
+
+    // ---------------------------------------------------------------------
     // Módulos institucionales: gestión exclusiva del administrador.
     // Soft delete (isActive: false); no se permite borrado físico.
     // ---------------------------------------------------------------------
