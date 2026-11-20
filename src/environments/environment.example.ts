@@ -1,6 +1,6 @@
 /**
  * Plantilla de configuración de ambiente para la Fundación Regalando Sonrisas.
- * Copie este archivo como 'environment.ts' o 'environment.local.ts' con sus credenciales del proyecto Firebase.
+ * Copie este archivo como 'environment.ts' si necesita restaurar la plantilla de desarrollo.
  * La configuración web de Firebase es pública; no incluya credenciales de servicio ni tokens.
  */
 import { EnvironmentConfig } from './environment.model';
@@ -12,14 +12,14 @@ export const environment: EnvironmentConfig = {
   appVersion: '0.1.0-dev',
   firebase: firebaseConfig,
   emulators: {
-    useEmulators: false,
-    authHost: 'http://localhost',
+    useEmulators: true,
+    authHost: 'http://127.0.0.1',
     authPort: 9099,
-    firestoreHost: 'localhost',
+    firestoreHost: '127.0.0.1',
     firestorePort: 8080,
-    storageHost: 'localhost',
+    storageHost: '127.0.0.1',
     storagePort: 9199,
-    functionsHost: 'localhost',
+    functionsHost: '127.0.0.1',
     functionsPort: 5001,
   },
 };

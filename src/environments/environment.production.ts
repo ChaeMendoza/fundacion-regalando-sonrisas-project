@@ -1,6 +1,10 @@
 import { EnvironmentConfig } from './environment.model';
 import { firebaseConfig } from './firebase-config';
 
+/**
+ * Entorno de producción para Firebase Hosting.
+ * Los emuladores están desactivados y no se configuran hosts locales.
+ */
 export const environment: EnvironmentConfig = {
   production: true,
   appName: 'Sistema de Gestión Integral - Fundación Regalando Sonrisas',
